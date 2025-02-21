@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GymSync.Backend", "GymSync.Backend/GymSync.Backend.csproj", "{61E7EABD-CDAE-448A-A76E-71A73615FC17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GymSync", "GymSync.csproj", "{CADF1333-6076-4D96-86AF-62EF709BEB00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{61E7EABD-CDAE-448A-A76E-71A73615FC17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{61E7EABD-CDAE-448A-A76E-71A73615FC17}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{61E7EABD-CDAE-448A-A76E-71A73615FC17}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{61E7EABD-CDAE-448A-A76E-71A73615FC17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CADF1333-6076-4D96-86AF-62EF709BEB00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CADF1333-6076-4D96-86AF-62EF709BEB00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CADF1333-6076-4D96-86AF-62EF709BEB00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CADF1333-6076-4D96-86AF-62EF709BEB00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {12623108-8686-4BAD-A8B8-99E6308A8F68}
+		SolutionGuid = {5461B698-9900-4DC2-8A92-2CB56D989E31}
 	EndGlobalSection
 EndGlobal
