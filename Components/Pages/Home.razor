@@ -1,7 +1,31 @@
-﻿@page "/"
+﻿@inject ApplicationDbContext DbContext
+
+@page "/"
+@using GymSync.Data
+@using GymSync.Models
+@using Microsoft.EntityFrameworkCore;
+
+
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+<h3> Users List </h3>
+<ul>
+	@foreach (var user in users)
+	{
+		<li>@user.firstName</li>	
+	}
+</ul>
+
+@code{
+	private List<User> users = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		users = await DbContext.USER.ToListAsync();	
+	}
+}

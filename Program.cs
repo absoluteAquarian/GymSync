@@ -1,4 +1,6 @@
 using GymSync.Components;
+using GymSync.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace GymSync {
 	public class Program {
@@ -8,6 +10,13 @@ namespace GymSync {
 			// Add services to the container.
 			builder.Services.AddRazorComponents()
 				.AddInteractiveServerComponents();
+
+			builder.Services.AddDbContext<ApplicationDbContext>(options =>
+			{
+				var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+				options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+			});
+			
 
 			var app = builder.Build();
 
