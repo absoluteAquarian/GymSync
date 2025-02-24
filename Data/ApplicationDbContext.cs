@@ -13,6 +13,7 @@ namespace GymSync.Data
         }
 
         public DbSet<UserEntity> USER { get; set; }
+        public DbSet<ClientEntity> CLIENT { get; set; }
     }
 
     
