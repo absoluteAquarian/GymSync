@@ -15,18 +15,18 @@ Welcome to your new app.
 
 <h3> Users List </h3>
 <ul>
-	@foreach (var job in joblist)
+	@foreach (var item in itemlist)
 	{
-		<li>@job.job_id @job.job_name @job.job_description @job.hourly_wage</li>
+		<li>@item.item_id @item.item_name @item.item_description</li>
 				
 	}
 </ul>
 
 @code{
-	private List<JobEntity> joblist = new();
+	private List<ItemEntity> itemlist = new();
 
 	protected override async Task OnInitializedAsync()
 	{
-		joblist = await DbContext.JOB.ToListAsync();	
+		itemlist = await DbContext.ITEM.ToListAsync();	
 	}
 }
