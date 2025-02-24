@@ -125,8 +125,14 @@
                 if (email != string.Empty)
                     if (password != string.Empty)
                         if (consentToPP)
+                        {
                             hideSuccess = !hideSuccess;
+                            hideWarning = true;
+                        }
                         else
+                        {
                             hideWarning = !hideWarning;
+                            hideSuccess = true;
+                        }
     }
 }

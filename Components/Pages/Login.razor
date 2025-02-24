@@ -84,8 +84,14 @@
 
         // Validate logins (primatively):
         if (email != "mamccorkle@ualr.edu" && password != "password")
+        {
             hideWarning = !hideWarning;
+            hideSuccess = true;
+        }
         else if(email == "mamccorkle@ualr.edu" && password == "password")
+        {
             hideSuccess = !hideSuccess;
+            hideWarning = true;
+        }
     }
 }
