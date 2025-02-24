@@ -19,6 +19,7 @@ namespace GymSync.Data
         public DbSet<JobEntity> JOB { get; set; }
         public DbSet<AppointmentEntity> APPOINTMENT { get; set; }
         public DbSet<ItemEntity> ITEM { get; set; }
+        public DbSet<EquipmentEntity> EQUIPMENT { get; set; }
     }
 
     
