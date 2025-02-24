@@ -17,16 +17,16 @@ Welcome to your new app.
 <ul>
 	@foreach (var item in itemlist)
 	{
-		<li>@item.trainer_id @item.appointment_id</li>
+		<li>@item.staff_id @item.job_id </li>
 				
 	}
 </ul>
 
 @code{
-	private List<Appointment_x_TrainerEntity> itemlist = new();
+	private List<Staff_x_JobEntity> itemlist = new();
 
 	protected override async Task OnInitializedAsync()
 	{
-		itemlist = await DbContext.APPOINTMENT_x_TRAINER.ToListAsync();	
+		itemlist = await DbContext.STAFF_x_JOB.ToListAsync();	
 	}
 }
