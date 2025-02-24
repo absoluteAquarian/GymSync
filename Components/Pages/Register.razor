@@ -1,0 +1,132 @@
+﻿@layout LoginLayout
+@page "/register"
+@rendermode InteractiveServer
+
+
+<section class="vh-100" style="background-color: #fefefe;">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col col-xl-10">
+                <div class="card" style="border-radius: 1rem;">
+                    <div class="row g-0">
+                        <div class="col-md-6 col-lg-5 d-none d-md-block">
+                            <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/img1.webp"
+                            alt="login form" class="img-fluid" style="border-radius: 1rem 0 0 1rem;" />
+                        </div>
+                        <div class="col-md-6 col-lg-7 d-flex align-items-center">
+                            <div class="card-body p-4 p-lg-5 text-black">
+
+
+
+                                <div class="d-flex align-items-center mb-3 pb-1">
+                                    <i class="fas fa-cubes fa-2x me-3" style="color: #ff6219;"></i>
+                                    <span class="h1 fw-bold mb-0">Logo</span>
+                                </div>
+
+                                <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Create an account</h5>
+
+                                <div data-mdb-input-init class="form-outline mb-4">
+                                    <InputText type="text" id="form2Example27" class="form-control form-control-lg" @bind-Value="firstName" placeholder="First Name" />
+                                    <label class="form-label" for="form2Example17">First Name</label>
+                                </div>
+
+                                <div data-mdb-input-init class="form-outline mb-4">
+                                    <InputText type="text" id="form2Example27" class="form-control form-control-lg" @bind-Value="lastName" placeholder="Last Name" />
+                                    <label class="form-label" for="form2Example17">Last Name</label>
+                                </div>
+
+                                <div data-mdb-input-init class="form-outline mb-4">
+                                    <InputText type="email" id="form2Example17" class="form-control form-control-lg" @bind-Value="email" placeholder="email address" />
+                                    <label class="form-label" for="form2Example17">Email address</label>
+                                </div>
+
+                                <div data-mdb-input-init class="form-outline mb-4">
+                                    <InputText type="password" id="form2Example27" class="form-control form-control-lg" @bind-Value="password" placeholder="password" />
+                                    <label class="form-label" for="form2Example27">Password</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <InputCheckbox class="form-check-input" type="checkbox" @bind-Value="marketable" id=" flexCheckDefault" />
+                                    <label class="form-check-label" for="flexCheckDefault">
+                                        Tick this box to sign up for marketing - you can unsubscribe at any time.
+                                    </label>
+                                </div>
+
+                                <div class="form-check">
+                                    <InputCheckbox class="form-check-input" type="checkbox" @bind-Value="consentToPP" id=" flexCheckDefault" />
+                                    <label class="form-check-label" for="flexCheckDefault">
+                                        I accept the Privacy Policy.
+                                    </label>
+                                </div>
+
+                                <div class="pt-1 mb-4">
+                                    <button data-mdb-button-init data-mdb-ripple-init class="btn btn-dark btn-lg btn-block" @onclick="ValidateUser">Register</button>
+                                </div>
+
+                                <p class="small text-muted">
+                                    <a href="/tos">Terms of use</a>
+                                    <a href="/privacypolicy">Privacy policy</a><br />
+                                </p>
+
+                                @* Alerts for valid and invalid registration *@
+                                <div class="alert alert-primary" role="alert" hidden="@hideWarning">
+                                    @warning
+                                </div>
+                                <div class="alert alert-success" role="alert" hidden="@hideSuccess">
+                                    @success
+                                </div>
+
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+@code {
+    private string? firstName;                                              // Variable to hold the users first name entered in the form
+    private string? lastName;                                               // Variable to hold the users last name entered in the form
+    private string? email;                                                  // Variable to hold the email address entered in the form
+    private string? password;                                               // Variable to hold the password entered in the form
+    private bool    marketable;                                             // Variable to hold the bool value for marketing
+    private bool    consentToPP;                                            // Gave consent to Privacy Policy
+    private string  warning = "Please review for missing data!";            // Warning message used for when a user enters the wron email/password combo
+    private string  success = "You are registered!";                        // Message used for successful login
+    private bool    hideWarning { get; set; } = true;                       // Source: https://getbootstrap.com/docs/4.0/components/alerts/
+    private bool    hideSuccess { get; set; } = true;                       // Source: https://getbootstrap.com/docs/4.0/components/alerts/
+
+    private void ValidateUser()
+    {
+        // Write to the console for debuggin purposes:
+        System.Diagnostics.Debug.WriteLine("First Name: " + firstName);
+        System.Diagnostics.Debug.WriteLine("Last Name: " + lastName);
+        System.Diagnostics.Debug.WriteLine("Email Address: " + email);
+        System.Diagnostics.Debug.WriteLine("Password: " + password);
+        if (marketable)
+            System.Diagnostics.Debug.WriteLine("Marketable: True");
+        else
+            System.Diagnostics.Debug.WriteLine("Marketable: False");
+        if (consentToPP)
+            System.Diagnostics.Debug.WriteLine("Privacy Policy Consent: True");
+        else
+            System.Diagnostics.Debug.WriteLine("Privacy Policy Consent: False");
+
+        // Validate logins (primatively):
+        if (firstName != string.Empty)
+            if (lastName != string.Empty)
+                if (email != string.Empty)
+                    if (password != string.Empty)
+                        if (consentToPP)
+                            hideSuccess = !hideSuccess;
+                        else
+                            hideWarning = !hideWarning;
+    }
+}
