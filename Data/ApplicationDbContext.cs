@@ -24,6 +24,9 @@ namespace GymSync.Data
         public DbSet<Appointment_x_TrainerEntity> APPOINTMENT_x_TRAINER { get; set; }
         public DbSet<Equipment_x_ItemEntity> EQUIPMENT_x_ITEM { get; set; }
         public DbSet<Staff_x_JobEntity> STAFF_x_JOB { get; set; }
+        public DbSet<User_x_ClientEntity> USER_x_CLIENT { get; set; }
+        public DbSet<User_x_StaffEntity> USER_x_STAFF { get; set; }
+        public DbSet<User_x_TrainerEntity> USER_x_TRAINER { get; set; }
     }
 
     
