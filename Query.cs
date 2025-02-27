@@ -110,7 +110,7 @@ namespace GymSync {
 		}
 		#endregion
 
-		public async Task<IEnumerable<ClientEntity>> GetClientsForTrainer(int trainerID) {
+		public async Task<List<ClientEntity>> GetClientsForTrainer(int trainerID) {
 			return await FindMany(
 				Filter(
 					_context.APPOINTMENT_x_TRAINER,
