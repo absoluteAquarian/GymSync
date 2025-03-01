@@ -1,4 +1,7 @@
 using GymSync.Components;
+using GymSync.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace GymSync {
 	public class Program {
@@ -9,7 +12,19 @@ namespace GymSync {
 			builder.Services.AddRazorComponents()
 				.AddInteractiveServerComponents();
 
-			var app = builder.Build();
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+
+            var manifestStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GymSync.connection.txt")
+                ?? throw new InvalidOperationException("Could not find the connection string within the assembly's embedded resources.");
+            string connectionString;
+            using (var reader = new StreamReader(manifestStream))
+                connectionString = reader.ReadToEnd();
+
+            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+
+            var app = builder.Build();
 
 			// Configure the HTTP request pipeline.
 			if (!app.Environment.IsDevelopment()) {
