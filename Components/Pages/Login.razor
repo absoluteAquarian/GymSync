@@ -7,7 +7,8 @@
 @page "/login"
 @rendermode InteractiveServer
 
-
+@* @using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider *@
 
 <PageTitle>Login</PageTitle>
 
@@ -84,13 +85,14 @@
     private bool hideWarning { get; set; } = true;                          // Source: https://getbootstrap.com/docs/4.0/components/alerts/
     private bool hideSuccess { get; set; } = true;                          // Source: https://getbootstrap.com/docs/4.0/components/alerts/
 
+
     // // Version 1:
     // private void ValidateUser()
     // {   
     //     // Write to the console for debuggin purposes:
     //     System.Diagnostics.Debug.WriteLine("Email Address: " + email);
     //     System.Diagnostics.Debug.WriteLine("Password: " + password);
-
+    //
     //     // Validate logins (primatively):
     //     if (email != "mamccorkle@ualr.edu" && password != "password")
     //     {
@@ -104,12 +106,14 @@
     //     }
     // }
 
+
+
     // // Version 2:
     // private async Task<bool> ValidateUser()
     // {
     //     //var returnedUsers = await DbContext.USER.FromSql($"SELECT * FROM USER").ToListAsync();
     //     List<UserEntity> returnedUsers = await DbContext.USER.FromSql($"SELECT * FROM USER").ToListAsync();
-
+    //
     //     if (returnedUsers.Count != 0)
     //     {
     //         // Lambda to search returned users for the specific user trying to log in. Only one entry should return:
@@ -119,16 +123,16 @@
     //             // Show logged in:
     //             hideSuccess = false;
     //             hideWarning = true;
-
+    //
     //             // Timed delay for effect:
     //             Task.Delay(5000).Wait();
-
+    //
     //             // Authorize user:
     //             // await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUsers);
-
+    //
     //             // Redirect approriate page:
     //             NavigationManager.NavigateTo("/");
-
+    //
     //             // Return true indicating valid login:
     //             return await Task.FromResult(true);
     //         }
@@ -137,7 +141,7 @@
     //             // Show invalid login
     //             hideSuccess = true;
     //             hideWarning = false;
-
+    //
     //             // Return false indicating invalid login:
     //             return await Task.FromResult(false);
     //         }
@@ -147,21 +151,24 @@
     //         // Show invalid login
     //         hideSuccess = true;
     //         hideWarning = false;
-
+    //
     //         // Return false indicating invalid login:
     //         return await Task.FromResult(false);
     //     }
-
+    //
     //     // Return false indicating invalid login:
     //     return await Task.FromResult(false);
     // }
 
+
+
     // Version 3:
     private async Task<bool> ValidateUser()
     {
-        if (string.IsNullOrEmpty(email))
+        // Check for valid information:
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
         {
-            // Show invalid login
+            // Show invalid login:
             hideSuccess = true;
             hideWarning = false;
 
@@ -170,11 +177,16 @@
         }
         else
         {
+            // Get the lowercase email and attach to the SQL statement being created:
             string emailLowered = email.ToLower();
             System.FormattableString query = $"SELECT * FROM USER WHERE LOWER(email) = {emailLowered}";
             List<UserEntity> returnedUsers = await DbContext.USER.FromSql(query).ToListAsync();
 
-            if (returnedUsers.Count == 1 && returnedUsers[0].userPassword == password)
+            // Get the hashed password:
+            string hashedPassword = GetPasswordHash(password);
+
+            // Ensure only one returned item and verify the passwords match:
+            if (returnedUsers.Count == 1 && returnedUsers[0].userPassword == hashedPassword)
             {
                 // Show logged in:
                 hideSuccess = false;
@@ -184,7 +196,7 @@
                 await Task.Delay(2000);
 
                 // Authorize user:
-                // await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUsers);
+                //await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUsers);
 
                 // Redirect approriate page:
                 NavigationManager.NavigateTo("/");
@@ -202,8 +214,12 @@
                 return await Task.FromResult(false);
             }
         }
+    }
 
-        // Return false indicating invalid login:
-        return await Task.FromResult(false);
+    string GetPasswordHash(string password)
+    {
+        var inputPasswordAsBytes = System.Text.Encoding.UTF8.GetBytes(password);
+        var inputPasswordAsHash = System.Security.Cryptography.SHA256.HashData(inputPasswordAsBytes);
+        return Convert.ToHexString(inputPasswordAsHash);
     }
 }

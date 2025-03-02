@@ -1,4 +1,9 @@
-﻿@layout LoginLayout
+﻿@using GymSync.Data
+@using GymSync.Models
+@using Microsoft.EntityFrameworkCore;
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@layout LoginLayout
 @page "/register"
 @rendermode InteractiveServer
 
@@ -29,25 +34,25 @@
                                 <div data-mdb-input-init class="form-outline mb-4">
                                     @* Input First Name *@
                                     <InputText type="text" id="form2Example27" class="form-control form-control-lg" @bind-Value="firstName" placeholder="First Name" />
-                                    <label class="form-label" for="form2Example17">First Name</label>
+                                    @* <label class="form-label" for="form2Example17">First Name</label> *@
                                 </div>
 
                                 <div data-mdb-input-init class="form-outline mb-4">
                                     @* Input Last Name *@
                                     <InputText type="text" id="form2Example27" class="form-control form-control-lg" @bind-Value="lastName" placeholder="Last Name" />
-                                    <label class="form-label" for="form2Example17">Last Name</label>
+                                    @* <label class="form-label" for="form2Example17">Last Name</label> *@
                                 </div>
 
                                 <div data-mdb-input-init class="form-outline mb-4">
                                     @* Input Email Address *@
                                     <InputText type="email" id="form2Example17" class="form-control form-control-lg" @bind-Value="email" placeholder="email address" />
-                                    <label class="form-label" for="form2Example17">Email address</label>
+                                    @* <label class="form-label" for="form2Example17">Email address</label> *@
                                 </div>
 
                                 <div data-mdb-input-init class="form-outline mb-4">
                                     @* Input Password *@
                                     <InputText type="password" id="form2Example27" class="form-control form-control-lg" @bind-Value="password" placeholder="password" />
-                                    <label class="form-label" for="form2Example27">Password</label>
+                                    @* <label class="form-label" for="form2Example27">Password</label> *@
                                 </div>
 
                                 <div class="form-check">
@@ -110,36 +115,94 @@
     private bool    hideWarning { get; set; } = true;                       // Source: https://getbootstrap.com/docs/4.0/components/alerts/
     private bool    hideSuccess { get; set; } = true;                       // Source: https://getbootstrap.com/docs/4.0/components/alerts/
 
-    private void ValidateUser()
-    {
-        // Write to the console for debuggin purposes:
-        System.Diagnostics.Debug.WriteLine("First Name: " + firstName);
-        System.Diagnostics.Debug.WriteLine("Last Name: " + lastName);
-        System.Diagnostics.Debug.WriteLine("Email Address: " + email);
-        System.Diagnostics.Debug.WriteLine("Password: " + password);
-        if (marketable)
-            System.Diagnostics.Debug.WriteLine("Marketable: True");
-        else
-            System.Diagnostics.Debug.WriteLine("Marketable: False");
-        if (consentToPP)
-            System.Diagnostics.Debug.WriteLine("Privacy Policy Consent: True");
-        else
-            System.Diagnostics.Debug.WriteLine("Privacy Policy Consent: False");
+    // // Version 1:
+    // private void ValidateUser()
+    // {
+    //     // Write to the console for debuggin purposes:
+    //     System.Diagnostics.Debug.WriteLine("First Name: " + firstName);
+    //     System.Diagnostics.Debug.WriteLine("Last Name: " + lastName);
+    //     System.Diagnostics.Debug.WriteLine("Email Address: " + email);
+    //     System.Diagnostics.Debug.WriteLine("Password: " + password);
+    //     if (marketable)
+    //         System.Diagnostics.Debug.WriteLine("Marketable: True");
+    //     else
+    //         System.Diagnostics.Debug.WriteLine("Marketable: False");
+    //     if (consentToPP)
+    //         System.Diagnostics.Debug.WriteLine("Privacy Policy Consent: True");
+    //     else
+    //         System.Diagnostics.Debug.WriteLine("Privacy Policy Consent: False");
 
-        // Validate logins (primatively):
-        if (firstName != string.Empty)
-            if (lastName != string.Empty)
-                if (email != string.Empty)
-                    if (password != string.Empty)
-                        if (consentToPP)
-                        {
-                            hideSuccess = !hideSuccess;
-                            hideWarning = true;
-                        }
-                        else
-                        {
-                            hideWarning = !hideWarning;
-                            hideSuccess = true;
-                        }
+    //     // Validate logins (primatively):
+    //     if (firstName != string.Empty)
+    //         if (lastName != string.Empty)
+    //             if (email != string.Empty)
+    //                 if (password != string.Empty)
+    //                     if (consentToPP)
+    //                     {
+    //                         hideSuccess = !hideSuccess;
+    //                         hideWarning = true;
+    //                     }
+    //                     else
+    //                     {
+    //                         hideWarning = !hideWarning;
+    //                         hideSuccess = true;
+    //                     }
+    // }
+
+
+    // Version 2:
+    private async Task<bool> ValidateUser()
+    {
+        if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || !consentToPP)
+        {
+            // Show invalid login
+            hideSuccess = true;
+            hideWarning = false;
+
+            // Return false indicating invalid login:
+            return await Task.FromResult(false);
+        }
+        else
+        {
+            // Get the lowercase version of the inputs:
+            string firstNameLowered = firstName.ToLower();
+            string lastNameLowered  = lastName.ToLower();
+            string emailLowered     = email.ToLower();
+
+            // Get the hashed password:
+            string hashedPassword   = GetPasswordHash(password);
+            
+            // Create the user entity:
+            var user = new UserEntity
+                {
+                    firstName = firstNameLowered,
+                    lastName = lastNameLowered,
+                    email = emailLowered,
+                    userPassword = hashedPassword
+                };
+
+            // Add the user to the DbContext
+            await DbContext.USER.AddAsync(user);
+
+            // Save the changes to the database
+            await DbContext.SaveChangesAsync();
+
+            // Show valid registration:
+            hideSuccess = false;
+            hideWarning = true;
+
+            // Redirect approriate page:
+            NavigationManager.NavigateTo("/");
+
+            // Return false indicating invalid login:
+            return await Task.FromResult(true);
+        }
+    }
+
+    string GetPasswordHash(string password)
+    {
+        var inputPasswordAsBytes = System.Text.Encoding.UTF8.GetBytes(password);
+        var inputPasswordAsHash = System.Security.Cryptography.SHA256.HashData(inputPasswordAsBytes);
+        return Convert.ToHexString(inputPasswordAsHash);
     }
 }

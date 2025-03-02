@@ -1,14 +1,19 @@
 ﻿@* @inherits User *@
-@* @attribute [Authorize(Roles = "administrator, manager")]
-@attribute [Authorize] *@
 
 @page "/authorizedonly"
 
+@* @attribute [Authorize(Roles = "administrator, manager")] *@
+@* @attribute [Authorize] *@
 
-<h3>AuthorizedOnlyPage</h3>
 
+<h3>Protected Page</h3>
+<p>This page is protected, and you must be authenticated to see it.</p>
+<br /><br />
 <p>This is a work in progress section...</p>
+
 
 @code {
 
 }
+
+
