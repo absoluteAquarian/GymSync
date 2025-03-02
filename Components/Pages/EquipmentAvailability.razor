@@ -1,0 +1,103 @@
+﻿@inject ApplicationDbContext DbContext;
+
+<link rel="stylesheet" href="~/app.css" asp-append-version="true"/>
+
+@page "/equipment-availability"
+@using GymSync.Data;
+@using GymSync.Models;
+@using GymSync.Views;
+@using GymSync.Components;
+@using Microsoft.EntityFrameworkCore;
+
+<PageTitle>GymSync Equipment Availability</PageTitle>
+
+
+<h1>Equipment Availability</h1>
+
+This page has a list of all gym equipment and its current availability.
+
+@if (!_ready)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<table class="equipment-table">
+
+		<thead>
+			<tr>
+				<th>Equipment Id</th>
+				<th>Equipment Name</th>
+				<th>Location</th>
+				<th>In Use</th>
+			</tr>
+		</thead>
+
+		<tbody>
+			@foreach(var gymEquipment in _gymEquipmentList)
+			{
+				<tr>
+					<td>@gymEquipment.EquipmentID</td>
+					<td>@gymEquipment.Name</td>
+					<td>@gymEquipment.Location</td>
+					@if (gymEquipment.InUse)
+					{
+						<td class="td-inuse">In Use</td>
+					}
+					else
+					{
+						<td class="td-notinuse">Open</td>	
+					}
+
+					
+				</tr>
+			}				
+		</tbody>
+
+	</table>
+}
+
+@code {
+	private Query _query;
+	private bool _ready;
+
+	private List<EquipmentEntity> _equipmentList = [];
+	private List<ItemEntity> _itemList = [];
+
+	private List<EquipmentView> _gymEquipmentList = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+
+		_query = new Query(DbContext);
+
+		//Get all the items and their information from the Equipment table in the database
+		_equipmentList = await _query.EquipmentToEquipmentAll();
+
+		//Get the information from the item table from the cross reference
+		//Use the equipmentID from the equipment list to access the cross reference and llookup the data in the Item table
+		foreach (var equipment in _equipmentList)
+		{
+			//This gives a "possible null reference warning, but it should not be an issue because of the way it is written
+			_itemList.Add(await _query.EquipmentToItem(equipment.equipment_id));	
+		}
+
+		//Merge the two lists into a list for the equipment view
+		for (int i = 0; i < _equipmentList.Count; i++)
+		{
+			//Local EquipmentView item for the new list
+			EquipmentView newEquipment = new EquipmentView(
+				_equipmentList[i].equipment_id,
+				_itemList[i].item_name,
+				_equipmentList[i].location_name,
+				_equipmentList[i].in_use);
+
+			_gymEquipmentList.Add(newEquipment);
+
+		}
+
+		_ready = true;
+	}
+
+}
