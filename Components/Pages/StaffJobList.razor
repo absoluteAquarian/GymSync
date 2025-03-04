@@ -1,4 +1,15 @@
-﻿<h3>StaffJobList</h3>
+﻿@inject ApplicationDbContext _DbContext;
+
+@page "/staff-job-list";
+@using GymSync.Data;
+@using GymSync.Models;
+@using GymSync.Views;
+@using GymSync.Components;
+@using Microsoft.EntityFrameworkCore;
+
+<PageTitle>GymSync Staff Job Listing</PageTitle>
+
+<h3>StaffJobList</h3>
 
 @code {
 
