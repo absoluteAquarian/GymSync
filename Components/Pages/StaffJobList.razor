@@ -11,6 +11,44 @@
 
 <h3>StaffJobList</h3>
 
+<p>This page displays the gym's staff and their current role in the facility</p>
+
+@if (!_ready)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	@foreach (var user in _staffMemberList)
+	{
+		<p>@user.FirstName @user.LastName</p>	
+	}
+}
+
 @code {
+
+	//set the required variables for each time the page is loaded.
+	private Query _query;
+	private bool _ready;
+
+	//List for the names of all staff members
+	private List<UserView> _staffMemberList;
+
+
+	//Code for loading the page
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+
+		_query = new Query(_DbContext);
+
+		//populate the staff member list
+		_staffMemberList = await _query.StaffToUserAll();
+
+
+		_ready = true;
+	}
+
+
 
 }
