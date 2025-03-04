@@ -1,4 +1,4 @@
-﻿@inject ApplicationDbContext _DbContext;
+﻿@inject ApplicationDbContext DbContext;
 
 @page "/staff-job-list";
 @using GymSync.Data;
@@ -19,7 +19,7 @@
 }
 else
 {
-	@foreach (var user in _staffMemberList)
+	@foreach (var user in _StaffJobsList)
 	{
 		<p>@user.FirstName @user.LastName</p>	
 	}
@@ -31,20 +31,24 @@ else
 	private Query _query;
 	private bool _ready;
 
-	//List for the names of all staff members
-	private List<UserView> _staffMemberList;
+	//List of StaffJobView classes for page info
+	private List<StaffJobView> _StaffJobsList;
 
+	//local data transfer class for working with IQuesyable
+	public class StaffDto { public int staff_id { get; set; } public int user_id { get; set; } }
 
 	//Code for loading the page
 	protected override async Task OnInitializedAsync()
 	{
 		_ready = false;
 
-		_query = new Query(_DbContext);
+		_query = new Query(DbContext);
 
-		//populate the staff member list
-		_staffMemberList = await _query.StaffToUserAll();
-
+		//get the list of members from the user_x_staff list.
+		foreach (var staff in await DbContext.USER_x_STAFF.Select(t => new StaffDto { staff_id = t.staff_id, user_id = t.user_id }).ToListAsync())
+		{
+			//need to check if user exists in the staff_x_job table
+		}
 
 		_ready = true;
 	}

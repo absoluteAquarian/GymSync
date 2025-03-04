@@ -1,6 +1,6 @@
-﻿namespace GymSync.Views
+﻿using GymSync.Models;
+
+namespace GymSync.Views
 {
-    public class StaffJobView
-    {
-    }
+    public record class StaffJobView(int UserID, string FirstName, string LastName, string JobName);
 }
