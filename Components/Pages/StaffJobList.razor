@@ -22,6 +22,7 @@ else
     <table class="equipment-table">
         <thead>
             <tr>
+                <th>Staff ID</th>
                 <th>User ID</th>
                 <th>Name</th>
                 <th>Job Name</th>
@@ -33,6 +34,7 @@ else
             @foreach (var staff in StaffJobsList)
             {
                 <tr>
+                    <td>@staff.StaffID</td>
                     <td>@staff.UserID</td>
                     <td>@staff.FirstName @staff.LastName</td>
                     <td>@staff.JobName</td>
@@ -44,7 +46,7 @@ else
 
     </table>
 
-    
+
 }
 
 @code {
@@ -58,7 +60,7 @@ else
 
     //local data transfer object for working with IQueryable
     public class StaffDto { public int staff_id { get; set; } }
-        
+
     //Code for loading the page
     protected override async Task OnInitializedAsync()
     {
@@ -76,7 +78,15 @@ else
 
             if ((job != null) && (userView != null))
             {
-                StaffJobsList.Add(new StaffJobView(userView.UserID, userView.FirstName, userView.LastName, job.job_name, job.job_description, job.hourly_wage));
+                StaffJobsList.Add(new StaffJobView(staff.staff_id, userView.UserID, userView.FirstName, userView.LastName, job.job_name, job.job_description, job.hourly_wage));
+            }
+            else if (userView != null)
+            {
+                StaffJobsList.Add(new StaffJobView(staff.staff_id, userView.UserID, userView.FirstName, userView.LastName, "No current job", "NA", 0.00f));
+            }
+            else
+            {
+                StaffJobsList.Add(new StaffJobView(staff.staff_id, 0, "NA", "NA", "No current job", "NA", 0.00f));
             }
         }
 
