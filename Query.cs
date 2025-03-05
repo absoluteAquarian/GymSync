@@ -93,10 +93,10 @@ namespace GymSync {
 		}
 
 		public async Task<List<EquipmentEntity>> EquipmentToEquipmentAll() {
-            return await _context.EQUIPMENT_x_ITEM
-                .FromCrossReferencePrimary(_context.EQUIPMENT)
-                .ToListAsync();
-        }
+			return await _context.EQUIPMENT_x_ITEM
+				.FromCrossReferencePrimary(_context.EQUIPMENT)
+				.ToListAsync();
+		}
 
 		public async Task<JobEntity?> StaffToJob(int staffID) {
 			return await _context.STAFF_x_JOB
