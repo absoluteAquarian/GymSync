@@ -1,7 +1,5 @@
 ﻿@inject ApplicationDbContext _dbContext;
 
-<link rel="stylesheet" href="~/app.css" asp-append-version="true" />
-
 @page "/client-appointment-list";
 @using GymSync.Components;
 @using GymSync.Data;
@@ -9,23 +7,53 @@
 @using GymSync.Views;
 @using Microsoft.EntityFrameworkCore;
 
-<h3>Client Appointment List</h3>
 
-<p>This page is for displaying all of a client's appointments</p>
+<body>
+	<h3>Client Appointment List</h3>
 
-@if (!_ready)
-{
-	<p>Loading.....</p>
-}
-else
-{
-	<p class="schedule-head">this text @_currentUser.FirstName @_currentUser.LastName</p>
+	<p>This page is for displaying all of a client's appointments</p>
 
-	@foreach(var appt in _appointmentList)
+	@if (!_ready)
 	{
-		<p>@appt.appointment_id @appt.start_time @appt.end_time</p>
+		<p>Loading.....</p>
 	}
-}
+	else
+	{
+		<p>Upcoming Appointments for: <b>@_currentUser.FirstName.ToUpper() @_currentUser.LastName.ToUpper()</b></p>
+
+		<table class="schedule-table">
+			<thead>
+				<tr>
+					<th>Appt Id</th>
+					<th> Start Day/Time</th>
+					<th>End Day/Time</th>
+				</tr>
+			</thead>
+
+			@foreach(var appt in _appointmentList)
+			{
+				if((appt.start_time - DateTime.Now).TotalDays < 2)
+				{
+					<tr class="near-appt">
+						<td>@appt.appointment_id</td>
+						<td>@appt.start_time</td>
+						<td>@appt.end_time</td>
+					</tr>
+				}
+				else
+				{
+					<tr>
+						<td>@appt.appointment_id</td>
+						<td>@appt.start_time</td>
+						<td>@appt.end_time</td>
+					</tr>					
+				}
+				
+			}
+		</table>
+	}
+
+</body>
 
 
 @code {
@@ -48,10 +76,14 @@ else
 		_currentUser = await _query.StaffToUser(_client_id);
 
 		//get the appointment list for the user
+		//This query uses the client's id to retrieve all of the appointments associated with them in the database
 		foreach(var appt in await _query.ClientToAppointmentAll(_client_id))
 		{
 			_appointmentList.Add(appt);
 		}
+
+		//sort the list to put them in order from closest upcoming appointment
+		_appointmentList = _appointmentList.OrderBy(appt => appt.start_time).ToList();
 
 		
 		
