@@ -20,10 +20,10 @@ This page lists the clients for each trainer.
 }
 else
 {
-	@foreach (var trainer in _trainers)
+	@foreach (var group in _list)
 	{
-		<h3>Trainer: @trainer.FirstName @trainer.LastName</h3>
-		@if (_trainerUserToClients.TryGetValue(trainer.UserID, out var clients) && clients.Count > 0)
+		<h3>Trainer: @group.trainer.FirstName @group.trainer.LastName</h3>
+		@if (group.clients.Count > 0)
 		{
 			<table class="table">
 				<thead>
@@ -33,7 +33,7 @@ else
 					</tr>
 				</thead>
 				<tbody>
-					@foreach (var client in clients)
+					@foreach (var client in group.clients)
 					{
 						<tr>
 							<td>@client.UserID</td>
@@ -54,23 +54,15 @@ else
 	private Query _query;
 	private bool _ready;
 
-	private List<UserView> _trainers = [];
-	private Dictionary<int, List<UserView>> _trainerUserToClients = [];
+	private List<(UserView trainer, List<UserView> clients)> _list = [];
 
 	protected override async Task OnInitializedAsync() {
 		_ready = false;
 
 		_query = new Query(DbContext);
 
-		// Get all trainers with one query rather than individual queries for each trainer
-		_trainers = await _query.TrainerToUserAll();
-
-		// Since the previous query accessed USER_x_TRAINER, accessing it again (via TrainerToUser) here shouldn't incur a database hit in theory
-		// But even if it does, only one field is being accessed, so the performance impact should be minimal
-		foreach (var trainer in await DbContext.TRAINER.Select(t => t.trainer_id).ToListAsync()) {
-			var user = await _query.TrainerToUser(trainer);
-			if (user != null)
-				_trainerUserToClients[user.UserID] = await _query.GetClientsForTrainer(trainer);
+		foreach (var group in await _query.GetClientsForTrainerAll()) {
+			_list.Add((group.Key, group.Values.ToList()));
 		}
 
 		_ready = true;
