@@ -1,5 +1,7 @@
 ﻿@inject ApplicationDbContext _dbContext;
 
+<link rel="stylesheet" href="~/app.css" asp-append-version="true" />
+
 @page "/client-appointment-list";
 @using GymSync.Components;
 @using GymSync.Data;
@@ -7,7 +9,7 @@
 @using GymSync.Views;
 @using Microsoft.EntityFrameworkCore;
 
-<h3>ClientAppointmentList</h3>
+<h3>Client Appointment List</h3>
 
 <p>This page is for displaying all of a client's appointments</p>
 
@@ -17,7 +19,7 @@
 }
 else
 {
-	<p>@_currentUser.FirstName @_currentUser.LastName</p>
+	<p class="schedule-head">this text @_currentUser.FirstName @_currentUser.LastName</p>
 
 	@foreach(var appt in _appointmentList)
 	{

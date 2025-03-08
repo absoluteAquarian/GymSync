@@ -67,3 +67,8 @@ h1:focus {
     text-align: center;
     border: 1px solid;
 }
+
+.schedule-head {
+    text-transform: uppercase;
+    color: blue;
+}
