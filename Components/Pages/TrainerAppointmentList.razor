@@ -19,7 +19,38 @@
 	}
 	else
 	{
-		<p>@_currentUser.UserID @_currentUser.FirstName @_currentUser.LastName</p>	
+		<p>@_currentUser.UserID @_currentUser.FirstName @_currentUser.LastName</p>
+
+		<table class="schedule-table">
+			<thead>
+				<tr>
+					<th>Appt Id</th>
+					<th>Start Time</th>
+					<th>End Time</th>
+				</tr>
+			</thead>
+
+			@foreach (var appt in _appointmentList)
+			{
+				@if ((appt.start_time - DateTime.Now).TotalDays < 2)
+				{
+					<tr class="near-appt">
+						<td>@appt.appointment_id</td>
+						<td>@appt.start_time</td>
+						<td>@appt.end_time</td>
+					</tr>
+				}
+				else
+				{
+					<tr>
+						<td>@appt.appointment_id</td>
+						<td>@appt.start_time</td>
+						<td>@appt.end_time</td>
+					</tr>
+				}
+			}
+
+		</table>
 	}
 </body>
 
@@ -30,6 +61,7 @@
 	int trainer_id = 1;
 
 	private UserView _currentUser = new UserView(0, "first", "last");
+	private List<AppointmentEntity> _appointmentList = new List<AppointmentEntity>();
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -39,6 +71,12 @@
 
 		_currentUser = await _query.TrainerToUser(trainer_id);
 
+		foreach (var appt in await _query.TrainerToAppointmentAll(trainer_id))
+		{
+			_appointmentList.Add(appt);	
+		}
+
+		_appointmentList = _appointmentList.OrderBy(appt => appt.start_time).ToList();
 
 
 		_ready = true;
