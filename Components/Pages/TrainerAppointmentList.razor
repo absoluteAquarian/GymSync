@@ -11,9 +11,36 @@
 <h3>TrainerAppointmentList</h3>
 
 <body>
+	<p>This page is for listing all of an individual trainer's upcoming appointments'</p>
 
+	@if (!_ready)
+	{
+		<p>Loading information....</p>
+	}
+	else
+	{
+		<p>@_currentUser.UserID @_currentUser.FirstName @_currentUser.LastName</p>	
+	}
 </body>
 
 @code {
+	private Query _query;
+	private bool _ready;
 
+	int trainer_id = 1;
+
+	private UserView _currentUser = new UserView(0, "first", "last");
+
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+
+		_query = new Query(_dbContext);
+
+		_currentUser = await _query.TrainerToUser(trainer_id);
+
+
+
+		_ready = true;
+	}
 }
