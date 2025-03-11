@@ -247,7 +247,9 @@ namespace GymSync {
 		public async Task<List<StaticGroup<UserView, UserView>>> GetClientsForTrainerAll() {
 			// For data being propagated through the query, the extensions won't help
 			// The anonymous types are based on the tree from GetClientsForTrainer()
-			return await _context.APPOINTMENT_x_TRAINER
+
+			// The GroupBy is not converted to a non-anonymous type since it will be converted manually anyway
+			var list = _context.APPOINTMENT_x_TRAINER
 				.Join(_context.TRAINER, at => at.trainer_id, t => t.trainer_id, (at, t) => new { TrainerID = at.trainer_id, AppointmentID = at.appointment_id })
 				.Join(_context.USER_x_TRAINER, i => i.TrainerID, ut => ut.trainer_id, (i, ut) => new { i.TrainerID, i.AppointmentID, TrainerUserID = ut.user_id })
 				.Join(_context.USER, i => i.TrainerUserID, u => u.user_id, (i, u) => new { i.TrainerID, i.AppointmentID, TrainerUser = new UserView(i.TrainerUserID, u.firstName, u.lastName) })
@@ -255,9 +257,16 @@ namespace GymSync {
 				.Join(_context.CLIENT, i => i.ClientID, c => c.client_id, (i, _) => i)
 				.Join(_context.USER_x_CLIENT, i => i.ClientID, uc => uc.client_id, (i, uc) => new { i.TrainerID, i.TrainerUser, ClientUserID = uc.user_id })
 				.Join(_context.USER, i => i.ClientUserID, u => u.user_id, (i, u) => new { i.TrainerID, i.TrainerUser, ClientUser = new UserView(i.ClientUserID, u.firstName, u.lastName) })
-				.GroupBy(i => i.TrainerID, i => i)
-				.Select(g => new StaticGroup<UserView, UserView>(g.First().TrainerUser, g.Select(i => i.ClientUser)))
-				.ToListAsync();
+				.GroupBy(i => i.TrainerID, i => new { i.TrainerUser, i.ClientUser })
+				.AsAsyncEnumerable();
+
+			// TODO: later builds of .NET allow for LINQ queries on IAsyncEnumerable
+			List<StaticGroup<UserView, UserView>> groups = [];
+			await foreach (var group in list) {
+				// Since "group" has been retrieved from the database, First() and Select() will not be part of the query
+				groups.Add(new StaticGroup<UserView, UserView>(group.First().TrainerUser, group.Select(i => i.ClientUser)));
+			}
+			return groups;
 		}
 	}
 
