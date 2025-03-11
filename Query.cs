@@ -2,6 +2,7 @@
 using GymSync.Models;
 using GymSync.Views;
 using Microsoft.EntityFrameworkCore;
+using System.Collections;
 using System.Linq.Expressions;
 
 namespace GymSync {
@@ -242,6 +243,30 @@ namespace GymSync {
 				.AsUserView()
 				.ToListAsync();
 		}
+
+		public async Task<List<StaticGroup<UserView, UserView>>> GetClientsForTrainerAll() {
+			// For data being propagated through the query, the extensions won't help
+			// The anonymous types are based on the tree from GetClientsForTrainer()
+			return await _context.APPOINTMENT_x_TRAINER
+				.Join(_context.TRAINER, at => at.trainer_id, t => t.trainer_id, (at, t) => new { TrainerID = at.trainer_id, AppointmentID = at.appointment_id })
+				.Join(_context.USER_x_TRAINER, i => i.TrainerID, ut => ut.trainer_id, (i, ut) => new { i.TrainerID, i.AppointmentID, TrainerUserID = ut.user_id })
+				.Join(_context.USER, i => i.TrainerUserID, u => u.user_id, (i, u) => new { i.TrainerID, i.AppointmentID, TrainerUser = new UserView(i.TrainerUserID, u.firstName, u.lastName) })
+				.Join(_context.APPOINTMENT_x_CLIENT, i => i.AppointmentID, ac => ac.appointment_id, (i, ac) => new { i.TrainerID, i.TrainerUser, ClientID = ac.client_id })
+				.Join(_context.CLIENT, i => i.ClientID, c => c.client_id, (i, _) => i)
+				.Join(_context.USER_x_CLIENT, i => i.ClientID, uc => uc.client_id, (i, uc) => new { i.TrainerID, i.TrainerUser, ClientUserID = uc.user_id })
+				.Join(_context.USER, i => i.ClientUserID, u => u.user_id, (i, u) => new { i.TrainerID, i.TrainerUser, ClientUser = new UserView(i.ClientUserID, u.firstName, u.lastName) })
+				.GroupBy(i => i.TrainerID, i => i)
+				.Select(g => new StaticGroup<UserView, UserView>(g.First().TrainerUser, g.Select(i => i.ClientUser)))
+				.ToListAsync();
+		}
+	}
+
+	public record class StaticGroup<TKey, TElement>(TKey Key, IEnumerable<TElement> Elements) : IGrouping<TKey, TElement> {
+		TKey IGrouping<TKey, TElement>.Key => Key;
+
+		IEnumerator<TElement> IEnumerable<TElement>.GetEnumerator() => Elements.GetEnumerator();
+
+		IEnumerator IEnumerable.GetEnumerator() => Elements.GetEnumerator();
 	}
 
 	public static class QueryExtensions {
