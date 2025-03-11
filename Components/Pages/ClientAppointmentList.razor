@@ -48,7 +48,7 @@
 						<td>@appt.end_time</td>
 					</tr>					
 				}
-				
+
 			}
 		</table>
 	}
@@ -73,20 +73,14 @@
 		_query = new Query(_dbContext);
 
 		//Get the current user's information for referenece on page
-		_currentUser = await _query.StaffToUser(_client_id);
+		if (await _query.ClientToUser(_client_id) is UserView user)
+			_currentUser = user;
 
 		//get the appointment list for the user
 		//This query uses the client's id to retrieve all of the appointments associated with them in the database
-		foreach(var appt in await _query.ClientToAppointmentAll(_client_id))
-		{
-			_appointmentList.Add(appt);
-		}
+		//Then sort the list to put them in order from closest upcoming appointment
+		_appointmentList = (await _query.ClientToAppointmentAll(_client_id)).OrderBy(appt => appt.start_time).ToList();
 
-		//sort the list to put them in order from closest upcoming appointment
-		_appointmentList = _appointmentList.OrderBy(appt => appt.start_time).ToList();
-
-		
-		
 		_ready = true;
 	}
 }
