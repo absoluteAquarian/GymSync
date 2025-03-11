@@ -248,29 +248,23 @@ namespace GymSync {
 			// For data being propagated through the query, the extensions won't help
 			// The anonymous types are based on the tree from GetClientsForTrainer()
 
-			var list =
+			return await _context.APPOINTMENT_x_TRAINER
 				// Resolve the trainer user for each appointment
-				_context.APPOINTMENT_x_TRAINER
-				.Join(_context.TRAINER, at => at.trainer_id, t => t.trainer_id, (at, t) => new { TrainerID = at.trainer_id, AppointmentID = at.appointment_id })
-				.Join(_context.USER_x_TRAINER, i => i.TrainerID, ut => ut.trainer_id, (i, ut) => new { i.TrainerID, i.AppointmentID, TrainerUserID = ut.user_id })
-				.Join(_context.USER, i => i.TrainerUserID, u => u.user_id, (i, u) => new { i.TrainerID, i.AppointmentID, TrainerUser = new UserView(i.TrainerUserID, u.firstName, u.lastName) })
+				.Join(_context.TRAINER, at => at.trainer_id, t => t.trainer_id, (at, t) => new { at.appointment_id, t.trainer_id })
+				.Join(_context.USER_x_TRAINER, i => i.trainer_id, ut => ut.trainer_id, (i, ut) => new { i.appointment_id, i.trainer_id, ut.user_id })
+				.Join(_context.USER, i => i.user_id, u => u.user_id, (i, u) => new { i.appointment_id, i.trainer_id, TrainerUser = new UserView(u.user_id, u.firstName, u.lastName) })
 				// Resolve the client user for each appointment
-				.Join(_context.APPOINTMENT_x_CLIENT, i => i.AppointmentID, ac => ac.appointment_id, (i, ac) => new { i.TrainerID, i.TrainerUser, ClientID = ac.client_id })
-				.Join(_context.CLIENT, i => i.ClientID, c => c.client_id, (i, _) => i)
-				.Join(_context.USER_x_CLIENT, i => i.ClientID, uc => uc.client_id, (i, uc) => new { i.TrainerID, i.TrainerUser, ClientUserID = uc.user_id })
-				.Join(_context.USER, i => i.ClientUserID, u => u.user_id, (i, u) => new { i.TrainerID, i.TrainerUser, ClientUser = new UserView(i.ClientUserID, u.firstName, u.lastName) })
+				.Join(_context.APPOINTMENT_x_CLIENT, i => i.appointment_id, ac => ac.appointment_id, (i, ac) => new { i.trainer_id, i.TrainerUser, ac.client_id })
+				.Join(_context.CLIENT, i => i.client_id, c => c.client_id, (i, c) => i)
+				.Join(_context.USER_x_CLIENT, i => i.client_id, uc => uc.client_id, (i, uc) => new { i.trainer_id, i.TrainerUser, uc.user_id })
+				.Join(_context.USER, i => i.user_id, u => u.user_id, (i, u) => new { i.trainer_id, i.TrainerUser, ClientUser = new UserView(u.user_id, u.firstName, u.lastName) })
 				// Group the clients by their trainer
-				.GroupBy(i => i.TrainerID, i => new { i.TrainerUser, i.ClientUser })
-				// Allow asynchronous enumeration
-				.AsAsyncEnumerable();
-
-			// TODO: later builds of .NET allow for LINQ queries on IAsyncEnumerable
-			List<StaticGroup<UserView, UserView>> groups = [];
-			await foreach (var group in list) {
-				// Since "group" has been retrieved from the database, First() and Select() will not be part of the query
-				groups.Add(new StaticGroup<UserView, UserView>(group.First().TrainerUser, group.Select(i => i.ClientUser)));
-			}
-			return groups;
+				.GroupBy(i => i.trainer_id, i => new { i.TrainerUser, i.ClientUser })
+				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
+				.AsAsyncEnumerable()
+				// Transform the groupings into UserView information
+				.TransformGroupsByElement(i => i.TrainerUser, i => i.ClientUser)
+				.ToListAsync();
 		}
 	}
 
@@ -309,6 +303,22 @@ namespace GymSync {
 		where TFrom : IQueryKeyable<TFrom, int>
 		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TFrom> {
 			return query.Join(cross, TFrom.GetPrimaryKey(), TCross.GetForeignKey(), (_, s) => s);
+		}
+
+		public static StaticGroup<TKeyTo, TElementTo> TransformGroup<TKeyFrom, TElementFrom, TKeyTo, TElementTo>(this IGrouping<TKeyFrom, TElementFrom> grouping, Func<TKeyFrom, TKeyTo> keyTransform, Func<TElementFrom, TElementTo> elementTransform) {
+			return new StaticGroup<TKeyTo, TElementTo>(keyTransform(grouping.Key), grouping.Select(elementTransform));
+		}
+
+		public static IAsyncEnumerable<StaticGroup<TKeyTo, TElementTo>> TransformGroups<TKeyFrom, TElementFrom, TKeyTo, TElementTo>(this IAsyncEnumerable<IGrouping<TKeyFrom, TElementFrom>> groupings, Func<TKeyFrom, TKeyTo> keyTransform, Func<TElementFrom, TElementTo> elementTransform) {
+			return groupings.Select(g => g.TransformGroup(keyTransform, elementTransform));
+		}
+
+		public static StaticGroup<TKeyTo, TElementTo> TransformGroupByElement<TKeyFrom, TElementFrom, TKeyTo, TElementTo>(this IGrouping<TKeyFrom, TElementFrom> grouping, Func<TElementFrom, TKeyTo> keyTransform, Func<TElementFrom, TElementTo> elementTransform) {
+			return new StaticGroup<TKeyTo, TElementTo>(keyTransform(grouping.First()), grouping.Select(elementTransform));
+		}
+
+		public static IAsyncEnumerable<StaticGroup<TKeyTo, TElementTo>> TransformGroupsByElement<TKeyFrom, TElementFrom, TKeyTo, TElementTo>(this IAsyncEnumerable<IGrouping<TKeyFrom, TElementFrom>> groupings, Func<TElementFrom, TKeyTo> keyTransform, Func<TElementFrom, TElementTo> elementTransform) {
+			return groupings.Select(g => g.TransformGroupByElement(keyTransform, elementTransform));
 		}
 
 		public static IQueryable<TTo> TransformWhereKeysMatch<TFrom, TTo>(this IQueryable<TFrom> query, IQueryable<TTo> keys)
