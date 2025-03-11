@@ -1,5 +1,84 @@
-﻿<h3>TrainerAppointmentList</h3>
+﻿@inject ApplicationDbContext _dbContext;
+
+@page "/trainer-appointment-list";
+@using GymSync.Components;
+@using GymSync.Data;
+@using GymSync.Models;
+@using GymSync.Views;
+@using Microsoft.EntityFrameworkCore;
+
+
+<h3>TrainerAppointmentList</h3>
+
+<body>
+	<p>This page is for listing all of an individual trainer's upcoming appointments'</p>
+
+	@if (!_ready)
+	{
+		<p>Loading information....</p>
+	}
+	else
+	{
+		<p>@_currentUser.UserID @_currentUser.FirstName @_currentUser.LastName</p>
+
+		<table class="schedule-table">
+			<thead>
+				<tr>
+					<th>Appt Id</th>
+					<th>Start Time</th>
+					<th>End Time</th>
+				</tr>
+			</thead>
+
+			@foreach (var appt in _appointmentList)
+			{
+				@if ((appt.start_time - DateTime.Now).TotalDays < 2)
+				{
+					<tr class="near-appt">
+						<td>@appt.appointment_id</td>
+						<td>@appt.start_time</td>
+						<td>@appt.end_time</td>
+					</tr>
+				}
+				else
+				{
+					<tr>
+						<td>@appt.appointment_id</td>
+						<td>@appt.start_time</td>
+						<td>@appt.end_time</td>
+					</tr>
+				}
+			}
+
+		</table>
+	}
+</body>
 
 @code {
+	private Query _query;
+	private bool _ready;
 
+	int trainer_id = 1;
+
+	private UserView _currentUser = new UserView(0, "first", "last");
+	private List<AppointmentEntity> _appointmentList = new List<AppointmentEntity>();
+
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+
+		_query = new Query(_dbContext);
+
+		_currentUser = await _query.TrainerToUser(trainer_id);
+
+		foreach (var appt in await _query.TrainerToAppointmentAll(trainer_id))
+		{
+			_appointmentList.Add(appt);	
+		}
+
+		_appointmentList = _appointmentList.OrderBy(appt => appt.start_time).ToList();
+
+
+		_ready = true;
+	}
 }
