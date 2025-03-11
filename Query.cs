@@ -6,7 +6,7 @@ using System.Collections;
 using System.Linq.Expressions;
 
 namespace GymSync {
-	public class Query(ApplicationDbContext context) {
+	public partial class Query(ApplicationDbContext context) {
 		private readonly ApplicationDbContext _context = context;
 
 		#region Cross-Reference Queries
@@ -248,16 +248,20 @@ namespace GymSync {
 			// For data being propagated through the query, the extensions won't help
 			// The anonymous types are based on the tree from GetClientsForTrainer()
 
-			// The GroupBy is not converted to a non-anonymous type since it will be converted manually anyway
-			var list = _context.APPOINTMENT_x_TRAINER
+			var list =
+				// Resolve the trainer user for each appointment
+				_context.APPOINTMENT_x_TRAINER
 				.Join(_context.TRAINER, at => at.trainer_id, t => t.trainer_id, (at, t) => new { TrainerID = at.trainer_id, AppointmentID = at.appointment_id })
 				.Join(_context.USER_x_TRAINER, i => i.TrainerID, ut => ut.trainer_id, (i, ut) => new { i.TrainerID, i.AppointmentID, TrainerUserID = ut.user_id })
 				.Join(_context.USER, i => i.TrainerUserID, u => u.user_id, (i, u) => new { i.TrainerID, i.AppointmentID, TrainerUser = new UserView(i.TrainerUserID, u.firstName, u.lastName) })
+				// Resolve the client user for each appointment
 				.Join(_context.APPOINTMENT_x_CLIENT, i => i.AppointmentID, ac => ac.appointment_id, (i, ac) => new { i.TrainerID, i.TrainerUser, ClientID = ac.client_id })
 				.Join(_context.CLIENT, i => i.ClientID, c => c.client_id, (i, _) => i)
 				.Join(_context.USER_x_CLIENT, i => i.ClientID, uc => uc.client_id, (i, uc) => new { i.TrainerID, i.TrainerUser, ClientUserID = uc.user_id })
 				.Join(_context.USER, i => i.ClientUserID, u => u.user_id, (i, u) => new { i.TrainerID, i.TrainerUser, ClientUser = new UserView(i.ClientUserID, u.firstName, u.lastName) })
+				// Group the clients by their trainer
 				.GroupBy(i => i.TrainerID, i => new { i.TrainerUser, i.ClientUser })
+				// Allow asynchronous enumeration
 				.AsAsyncEnumerable();
 
 			// TODO: later builds of .NET allow for LINQ queries on IAsyncEnumerable
