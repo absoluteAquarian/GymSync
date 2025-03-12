@@ -9,25 +9,47 @@
 
 
 <PageTitle>Home</PageTitle>
+<body>
+	<h1>Hello, User, welcome to GymSync!</h1>
 
-<h1>Hello, world!</h1>
+	<p>This is the main page of the GymSync application</p>
 
-Welcome to your new app.
-
-<h3> Users List </h3>
-<ul>
-	@foreach (var item in itemlist)
+	@if (_isTrainer)
 	{
-		<li>@item.user_id @item.trainer_id </li>
-				
+		<div class="trainer-section">
+			This is the trainer section.
+		</div>
 	}
-</ul>
+
+	@if (_isStaff)
+	{
+		<div class="staff-section">
+			This is the staff section.
+		</div>
+	}
+	@if (_isClient)
+	{
+		<div class="client-section">
+			This is the client section.
+		</div>
+	}
+
+
+
+</body>
+
 
 @code{
-	private List<User_x_TrainerEntity> itemlist = new();
 
-	protected override async Task OnInitializedAsync()
-	{
-		itemlist = await DbContext.USER_x_TRAINER.ToListAsync();	
-	}
+	//variables for determining the view
+	//userID will be used to lookup the other ID's and determine if the user belongs to those classes
+	private int _userID;
+	private int _trainerID;
+	private int _staffID;
+	private int _clientID;
+
+	private bool _isTrainer = true;
+	private bool _isStaff = true;
+	private bool _isClient = true;
+
 }
