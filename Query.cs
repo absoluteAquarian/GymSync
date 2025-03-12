@@ -261,8 +261,8 @@ namespace GymSync {
 				// Group the clients by their trainer
 				.GroupBy(anon => anon.trainer_id, anon => new { anon.TrainerUser, anon.ClientUser })
 				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
+				// The group transformations should be handled client-side since doing them server-side results in absurdly large and complex queries
 				.AsAsyncEnumerable()
-				// Transform the groupings into UserView information
 				.TransformGroupsByElement(anon => anon.TrainerUser, anon => anon.ClientUser)
 				.ToListAsync();
 		}
