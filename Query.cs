@@ -250,8 +250,8 @@ namespace GymSync {
 
 			return await _context.APPOINTMENT_x_TRAINER
 				// Resolve the trainer user for each appointment
-				.Join(_context.TRAINER, at => at.trainer_id, t => t.trainer_id, (at, t) => new { at.appointment_id, t.trainer_id })
-				.Join(_context.USER_x_TRAINER, i => i.trainer_id, ut => ut.trainer_id, (i, ut) => new { i.appointment_id, i.trainer_id, ut.user_id })
+				.Join(_context.TRAINER, at => at.trainer_id, t => t.trainer_id, (at, t) => at)
+				.Join(_context.USER_x_TRAINER, at => at.trainer_id, ut => ut.trainer_id, (at, ut) => new { at.appointment_id, at.trainer_id, ut.user_id })
 				.Join(_context.USER, i => i.user_id, u => u.user_id, (i, u) => new { i.appointment_id, i.trainer_id, TrainerUser = new UserView(u.user_id, u.firstName, u.lastName) })
 				// Resolve the client user for each appointment
 				.Join(_context.APPOINTMENT_x_CLIENT, i => i.appointment_id, ac => ac.appointment_id, (i, ac) => new { i.trainer_id, i.TrainerUser, ac.client_id })
@@ -264,6 +264,17 @@ namespace GymSync {
 				.AsAsyncEnumerable()
 				// Transform the groupings into UserView information
 				.TransformGroupsByElement(i => i.TrainerUser, i => i.ClientUser)
+				.ToListAsync();
+		}
+
+		public async Task<List<EquipmentView>> GetEquipmentAll() {
+			// For data being propagated through the query, the extensions won't help
+
+			return await _context.EQUIPMENT_x_ITEM
+				// Resolve the equipment for each reference
+				.Join(_context.EQUIPMENT, ei => ei.equipment_id, e => e.equipment_id, (ei, e) => new { ei.item_id, equipment = e })
+				// Resolve the item for each equipment
+				.Join(_context.ITEM, i => i.equipment.equipment_id, it => it.item_id, (i, it) => new EquipmentView(i.equipment.equipment_id, it.item_name, i.equipment.location_name, i.equipment.in_use))
 				.ToListAsync();
 		}
 	}
