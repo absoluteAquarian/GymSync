@@ -1,8 +1,8 @@
 ﻿using GymSync.Data;
 using GymSync.Models;
+using GymSync.Querying;
 using GymSync.Views;
 using Microsoft.EntityFrameworkCore;
-using System.Collections;
 using System.Linq.Expressions;
 
 namespace GymSync {
@@ -250,20 +250,20 @@ namespace GymSync {
 
 			return await _context.APPOINTMENT_x_TRAINER
 				// Resolve the trainer user for each appointment
-				.Join(_context.TRAINER, at => at.trainer_id, t => t.trainer_id, (at, t) => at)
-				.Join(_context.USER_x_TRAINER, at => at.trainer_id, ut => ut.trainer_id, (at, ut) => new { at.appointment_id, at.trainer_id, ut.user_id })
-				.Join(_context.USER, i => i.user_id, u => u.user_id, (i, u) => new { i.appointment_id, i.trainer_id, TrainerUser = new UserView(u.user_id, u.firstName, u.lastName) })
+				.WhereForeignKeyMatches(_context.TRAINER)
+				.AnonymousMergeCrossReferenceForeign(_context.USER_x_TRAINER, at => at.trainer_id, (at, ut) => new { at.appointment_id, at.trainer_id, ut.user_id })
+				.AnonymousMergeWhereMatchesKey(_context.USER, anon => anon.user_id, (anon, u) => new { anon.appointment_id, anon.trainer_id, TrainerUser = new UserView(u.user_id, u.firstName, u.lastName) })
 				// Resolve the client user for each appointment
-				.Join(_context.APPOINTMENT_x_CLIENT, i => i.appointment_id, ac => ac.appointment_id, (i, ac) => new { i.trainer_id, i.TrainerUser, ac.client_id })
-				.Join(_context.CLIENT, i => i.client_id, c => c.client_id, (i, c) => i)
-				.Join(_context.USER_x_CLIENT, i => i.client_id, uc => uc.client_id, (i, uc) => new { i.trainer_id, i.TrainerUser, uc.user_id })
-				.Join(_context.USER, i => i.user_id, u => u.user_id, (i, u) => new { i.trainer_id, i.TrainerUser, ClientUser = new UserView(u.user_id, u.firstName, u.lastName) })
+				.AnonymousMergeCrossReferencePrimary(_context.APPOINTMENT_x_CLIENT, anon => anon.appointment_id, (anon, ac) => new { anon.trainer_id, anon.TrainerUser, ac.client_id })
+				.AnonymousWhereMatchesKey(_context.CLIENT, anon => anon.client_id)
+				.AnonymousMergeWhereMatchesKey(_context.USER_x_CLIENT, anon => anon.client_id, (anon, uc) => new { anon.trainer_id, anon.TrainerUser, uc.user_id })
+				.AnonymousMergeWhereMatchesKey(_context.USER, anon => anon.user_id, (anon, u) => new { anon.trainer_id, anon.TrainerUser, ClientUser = new UserView(u.user_id, u.firstName, u.lastName) })
 				// Group the clients by their trainer
-				.GroupBy(i => i.trainer_id, i => new { i.TrainerUser, i.ClientUser })
+				.GroupBy(anon => anon.trainer_id, anon => new { anon.TrainerUser, anon.ClientUser })
 				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
 				.AsAsyncEnumerable()
 				// Transform the groupings into UserView information
-				.TransformGroupsByElement(i => i.TrainerUser, i => i.ClientUser)
+				.TransformGroupsByElement(anon => anon.TrainerUser, anon => anon.ClientUser)
 				.ToListAsync();
 		}
 
@@ -272,9 +272,9 @@ namespace GymSync {
 
 			return await _context.EQUIPMENT_x_ITEM
 				// Resolve the equipment for each reference
-				.Join(_context.EQUIPMENT, ei => ei.equipment_id, e => e.equipment_id, (ei, e) => new { ei.item_id, equipment = e })
+				.MergeFromCrossReferencePrimary(_context.EQUIPMENT, (ei, e) => new { ei.item_id, e.equipment_id, e.location_name, e.in_use })
 				// Resolve the item for each equipment
-				.Join(_context.ITEM, i => i.equipment.equipment_id, it => it.item_id, (i, it) => new EquipmentView(i.equipment.equipment_id, it.item_name, i.equipment.location_name, i.equipment.in_use))
+				.AnonymousMergeWhereMatchesKey(_context.ITEM, anon => anon.item_id, (anon, i) => new EquipmentView(anon.equipment_id, i.item_name, anon.location_name, anon.in_use))
 				.ToListAsync();
 		}
 
@@ -284,10 +284,11 @@ namespace GymSync {
 
 			return await _context.STAFF_x_JOB
 				// Resolve the job for each staff member.  If the job doesn't exist, the job info will be null
-				.LeftJoin(_context.JOB, sj => sj.job_id, j => j.job_id, (sj, j) => new { sj.staff_id, Job = j })
+				.WhereKeysMatch(_context.STAFF)
+				.MergeFromCrossReferenceForeignAllowNull(_context.JOB, (sj, j) => new { sj.staff_id, Job = j })
 				// Resolve the user for each staff member
-				.Join(_context.USER_x_STAFF, i => i.staff_id, us => us.staff_id, (i, us) => new { i.staff_id, i.Job, us.user_id })
-				.Join(_context.USER, i => i.user_id, u => u.user_id, (i, u) => new { i.staff_id, User = new UserView(u.user_id, u.firstName, u.lastName), i.Job })
+				.AnonymousMergeCrossReferenceForeign(_context.USER_x_STAFF, anon => anon.staff_id, (anon, us) => new { anon.staff_id, anon.Job, us.user_id })
+				.AnonymousMergeWhereMatchesKey(_context.USER, anon => anon.user_id, (anon, u) => new { anon.staff_id, anon.Job, User = new UserView(u.user_id, u.firstName, u.lastName) })
 				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
 				// The job columns have to be resolved client-side since expression trees don't support null-coalescing / null-propagation operators
 				.AsAsyncEnumerable()
@@ -296,15 +297,42 @@ namespace GymSync {
 		}
 	}
 
-	public record class StaticGroup<TKey, TElement>(TKey Key, IEnumerable<TElement> Elements) : IGrouping<TKey, TElement> {
-		TKey IGrouping<TKey, TElement>.Key => Key;
-
-		IEnumerator<TElement> IEnumerable<TElement>.GetEnumerator() => Elements.GetEnumerator();
-
-		IEnumerator IEnumerable.GetEnumerator() => Elements.GetEnumerator();
-	}
-
 	public static class QueryExtensions {
+		public static IQueryable<TResult> AnonymousMergeCrossReferencePrimary<TAnonymous, TCross, TResult>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TCross, TResult>> resultSelector)
+		where TCross : ICrossReference<TCross> {
+			return query.Join(cross, anonymousKeySelector, TCross.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> AnonymouseMergeCrossReferencePrimaryAllowNull<TAnonymous, TCross, TResult>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TCross?, TResult>> resultSelector)
+		where TCross : ICrossReference<TCross> {
+			return query.LeftJoin(cross, anonymousKeySelector, TCross.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> AnonymousMergeCrossReferenceForeign<TAnonymous, TCross, TResult>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TCross, TResult>> resultSelector)
+		where TCross : ICrossReference<TCross> {
+			return query.Join(cross, anonymousKeySelector, TCross.GetForeignKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> AnonymousMergeCrossReferenceForeignAllowNull<TAnonymous, TCross, TResult>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TCross?, TResult>> resultSelector)
+		where TCross : ICrossReference<TCross> {
+			return query.LeftJoin(cross, anonymousKeySelector, TCross.GetForeignKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> AnonymousMergeWhereMatchesKey<TAnonymous, TTo, TResult>(this IQueryable<TAnonymous> query, IQueryable<TTo> to, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TTo, TResult>> resultSelector)
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.Join(to, anonymousKeySelector, TTo.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> AnonymousMergeWhereMatchesKeyAllowNull<TAnonymous, TTo, TResult>(this IQueryable<TAnonymous> query, IQueryable<TTo> to, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TTo?, TResult>> resultSelector)
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.LeftJoin(to, anonymousKeySelector, TTo.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TAnonymous> AnonymousWhereMatchesKey<TAnonymous, TTo>(this IQueryable<TAnonymous> query, IQueryable<TTo> to, Expression<Func<TAnonymous, int>> anonymousKeySelector)
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.Join(to, anonymousKeySelector, TTo.GetPrimaryKey(), (q, _) => q);
+		}
+
 		public static IQueryable<UserView> AsUserView(this IQueryable<UserEntity> query) {
 			return query.Select(u => new UserView(u.user_id, u.firstName, u.lastName));
 		}
@@ -319,6 +347,66 @@ namespace GymSync {
 		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TTo>
 		where TTo : IQueryKeyable<TTo, int> {
 			return query.Join(to, TCross.GetForeignKey(), TTo.GetPrimaryKey(), (_, s) => s);
+		}
+
+		public static IQueryable<TResult> MergeFromCrossReferencePrimary<TCross, TTo, TResult>(this IQueryable<TCross> query, IQueryable<TTo> to, Expression<Func<TCross, TTo, TResult>> resultSelector)
+		where TCross : ICrossReference<TCross>, ICrossReferencePrimary<TTo>
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.Join(to, TCross.GetPrimaryKey(), TTo.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> MergeFromCrossReferencePrimaryAllowNull<TCross, TTo, TResult>(this IQueryable<TCross> query, IQueryable<TTo> to, Expression<Func<TCross, TTo?, TResult>> resultSelector)
+		where TCross : ICrossReference<TCross>, ICrossReferencePrimary<TTo>
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.LeftJoin(to, TCross.GetPrimaryKey(), TTo.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> MergeFromCrossReferenceForeign<TCross, TTo, TResult>(this IQueryable<TCross> query, IQueryable<TTo> to, Expression<Func<TCross, TTo, TResult>> resultSelector)
+		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TTo>
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.Join(to, TCross.GetForeignKey(), TTo.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> MergeFromCrossReferenceForeignAllowNull<TCross, TTo, TResult>(this IQueryable<TCross> query, IQueryable<TTo> to, Expression<Func<TCross, TTo?, TResult>> resultSelector)
+		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TTo>
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.LeftJoin(to, TCross.GetForeignKey(), TTo.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> MergeWhereKeysMatch<TFrom, TTo, TResult>(this IQueryable<TFrom> query, IQueryable<TTo> to, Expression<Func<TFrom, TTo, TResult>> resultSelector)
+		where TFrom : IQueryKeyable<TFrom, int>
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.Join(to, TFrom.GetPrimaryKey(), TTo.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> MergeWhereKeysMatchAllowNull<TFrom, TTo, TResult>(this IQueryable<TFrom> query, IQueryable<TTo> to, Expression<Func<TFrom, TTo?, TResult>> resultSelector)
+		where TFrom : IQueryKeyable<TFrom, int>
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.LeftJoin(to, TFrom.GetPrimaryKey(), TTo.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> MergeWithCrossReferencePrimary<TFrom, TCross, TResult>(this IQueryable<TFrom> query, IQueryable<TCross> cross, Expression<Func<TFrom, TCross, TResult>> resultSelector)
+		where TFrom : IQueryKeyable<TFrom, int>
+		where TCross : ICrossReference<TCross>, ICrossReferencePrimary<TFrom> {
+			return query.Join(cross, TFrom.GetPrimaryKey(), TCross.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> MergeWithCrossReferencePrimaryAllowNull<TFrom, TCross, TResult>(this IQueryable<TFrom> query, IQueryable<TCross> cross, Expression<Func<TFrom, TCross?, TResult>> resultSelector)
+		where TFrom : IQueryKeyable<TFrom, int>
+		where TCross : ICrossReference<TCross>, ICrossReferencePrimary<TFrom> {
+			return query.LeftJoin(cross, TFrom.GetPrimaryKey(), TCross.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> MergeWithCrossReferenceForeign<TFrom, TCross, TResult>(this IQueryable<TFrom> query, IQueryable<TCross> cross, Expression<Func<TFrom, TCross, TResult>> resultSelector)
+		where TFrom : IQueryKeyable<TFrom, int>
+		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TFrom> {
+			return query.Join(cross, TFrom.GetPrimaryKey(), TCross.GetForeignKey(), resultSelector);
+		}
+
+		public static IQueryable<TResult> MergeWithCrossReferenceForeignAllowNull<TFrom, TCross, TResult>(this IQueryable<TFrom> query, IQueryable<TCross> cross, Expression<Func<TFrom, TCross?, TResult>> resultSelector)
+		where TFrom : IQueryKeyable<TFrom, int>
+		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TFrom> {
+			return query.LeftJoin(cross, TFrom.GetPrimaryKey(), TCross.GetForeignKey(), resultSelector);
 		}
 
 		public static IQueryable<TResult> LeftJoin<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer, IQueryable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner?, TResult>> resultSelector) {
@@ -360,10 +448,34 @@ namespace GymSync {
 			return groupings.Select(g => g.TransformGroupByElement(keyTransform, elementTransform));
 		}
 
+		public static IQueryable<TTo> TransformWhereForeignKeyMatches<TCross, TTo>(this IQueryable<TCross> query, IQueryable<TTo> to)
+		where TTo : IQueryKeyable<TTo, int>
+		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TTo> {
+			return query.Join(to, TCross.GetForeignKey(), TTo.GetPrimaryKey(), (_, s) => s);
+		}
+
+		public static IQueryable<TResult> TransformWhereForeignKeyMatches<TCross, TTo, TResult>(this IQueryable<TCross> query, IQueryable<TTo> to, Expression<Func<TCross, TTo, TResult>> resultSelector)
+		where TTo : IQueryKeyable<TTo, int>
+		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TTo> {
+			return query.Join(to, TCross.GetForeignKey(), TTo.GetPrimaryKey(), resultSelector);
+		}
+
 		public static IQueryable<TTo> TransformWhereKeysMatch<TFrom, TTo>(this IQueryable<TFrom> query, IQueryable<TTo> keys)
 		where TFrom : IQueryKeyable<TFrom, int>
 		where TTo : IQueryKeyable<TTo, int> {
 			return query.Join(keys, TFrom.GetPrimaryKey(), TTo.GetPrimaryKey(), (_, s) => s);
+		}
+
+		public static IQueryable<TResult> TransformWhereKeysMatch<TFrom, TTo, TResult>(this IQueryable<TFrom> query, IQueryable<TTo> keys, Expression<Func<TFrom, TTo, TResult>> resultSelector)
+		where TFrom : IQueryKeyable<TFrom, int>
+		where TTo : IQueryKeyable<TTo, int> {
+			return query.Join(keys, TFrom.GetPrimaryKey(), TTo.GetPrimaryKey(), resultSelector);
+		}
+
+		public static IQueryable<TCross> WhereForeignKeyMatches<TCross, TTo>(this IQueryable<TCross> query, IQueryable<TTo> to)
+		where TTo : IQueryKeyable<TTo, int>
+		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TTo> {
+			return query.Join(to, TCross.GetForeignKey(), TTo.GetPrimaryKey(), (q, _) => q);
 		}
 
 		public static IQueryable<TFrom> WhereKeysMatch<TFrom, TTo>(this IQueryable<TFrom> query, IQueryable<TTo> keys)
