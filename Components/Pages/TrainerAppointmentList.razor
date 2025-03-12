@@ -68,7 +68,7 @@
 	{
 		_ready = false;
 		
-		_query = new Query(_dbContext);
+		Query _query = new Query(_dbContext);
 
 		_currentUser = await _query.TrainerToUser(trainer_id);
 
