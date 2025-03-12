@@ -1,8 +1,10 @@
-﻿@inject ApplicationDbContext DbContext
+﻿@inject ApplicationDbContext _dbContext;
 
 @page "/"
 @using GymSync.Data
 @using GymSync.Models
+@using GymSync.Views;
+@using GymSync.Components;
 @using Microsoft.EntityFrameworkCore;
 
 @*just a comment for push new branch*@
@@ -41,9 +43,12 @@
 
 @code{
 
+	Query _query;
+	private bool _ready;
+
 	//variables for determining the view
 	//userID will be used to lookup the other ID's and determine if the user belongs to those classes
-	private int _userID;
+	private int _userID = 1;
 	private int _trainerID;
 	private int _staffID;
 	private int _clientID;
@@ -51,5 +56,29 @@
 	private bool _isTrainer = true;
 	private bool _isStaff = true;
 	private bool _isClient = true;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+		_query = new Query(_dbContext);
+
+		//check user id against trainer list and see if they exist
+		TrainerEntity? trainer = await _query.UserToTrainer(_userID);
+		_trainerID = trainer != null ? trainer.trainer_id : 0;
+		_isTrainer = trainer != null;
+		
+		//check user against staff list
+		StaffEntity? staff = await _query.UserToStaff(_userID);
+		_staffID = staff != null ? staff.staff_id : 0;
+		_isStaff = staff != null;
+		
+		//check user against the client list
+		ClientEntity? client = await _query.UserToClient(_userID);
+		_clientID = client != null ? client.client_id : 0;
+		_isClient = client != null;
+
+
+		_ready = true;
+	}
 
 }
