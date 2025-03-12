@@ -233,21 +233,10 @@ namespace GymSync {
 		}
 		#endregion
 
-		public async Task<List<UserView>> GetClientsForTrainer(int trainerID) {
-			return await _context.APPOINTMENT_x_TRAINER
-				.Where(at => at.trainer_id == trainerID)
-				.TransformWhereKeysMatch(_context.APPOINTMENT_x_CLIENT)
-				.FromCrossReferenceForeign(_context.CLIENT)
-				.ToCrossReferenceForeign(_context.USER_x_CLIENT)
-				.FromCrossReferencePrimary(_context.USER)
-				.AsUserView()
-				.ToListAsync();
-		}
-
 		public async Task<List<StaticGroup<UserView, UserView>>> GetClientsForTrainerAll() {
 			// For data being propagated through the query, the extensions won't help
-			// The anonymous types are based on the tree from GetClientsForTrainer()
 
+			// TODO: Return empty client lists for trainers with no clients?
 			return await _context.APPOINTMENT_x_TRAINER
 				// Resolve the trainer user for each appointment
 				.WhereForeignKeyMatches(_context.TRAINER)
