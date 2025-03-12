@@ -7,36 +7,36 @@
 @using GymSync.Components;
 @using Microsoft.EntityFrameworkCore;
 
-@*just a comment for push new branch*@
-
-
-<PageTitle>Home</PageTitle>
+<PageTitle>GymSync Home Page</PageTitle>
 <body>
-	<h1>Hello, User, welcome to GymSync!</h1>
+	<div class="home-page-main">
+		<h1>Hello, @_userName, welcome to GymSync!</h1>
 
-	<p>This is the main page of the GymSync application</p>
+		<p>This is the main page of the GymSync application</p>
 
-	@if (_isTrainer)
-	{
-		<div class="trainer-section">
-			This is the trainer section.
-		</div>
-	}
+		@if (_isTrainer)
+		{
+			<div class="trainer-section">
+				<p>Welcome to your GymSync Trainer Session.</p>
+				<p> <a href="trainer-appointment-list/@_trainerID">View Your Appointments</a></p>
+			</div>
+		}
 
-	@if (_isStaff)
-	{
-		<div class="staff-section">
-			This is the staff section.
-		</div>
-	}
-	@if (_isClient)
-	{
-		<div class="client-section">
-			This is the client section.
-		</div>
-	}
+		@if (_isStaff)
+		{
+			<div class="staff-section">
+				<p>This is the staff section.</p>
+			</div>
+		}
+		@if (_isClient)
+		{
+			<div class="client-section">
+				<p>This is the client section.</p>
+				<p>Link to client schedule is going to be here</p>
+			</div>
+		}
 
-
+	</div>
 
 </body>
 
@@ -57,10 +57,16 @@
 	private bool _isStaff = true;
 	private bool _isClient = true;
 
+	//variables for user information
+	private string _userName = "Unknown User";
+
 	protected override async Task OnInitializedAsync()
 	{
 		_ready = false;
 		_query = new Query(_dbContext);
+
+		UserEntity? currentUser = await _query.UserToUser(_userID);
+		_userName = currentUser != null ? currentUser.firstName.ToUpper() + " " + currentUser.lastName.ToUpper() : "Unknown User";
 
 		//check user id against trainer list and see if they exist
 		TrainerEntity? trainer = await _query.UserToTrainer(_userID);
