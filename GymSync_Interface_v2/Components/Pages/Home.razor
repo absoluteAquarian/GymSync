@@ -1,7 +1,29 @@
 ﻿@page "/"
 
+
+<style type="text/css" >
+    body {
+        background: #000000;
+    }
+
+    .background {
+        background-image: url('https://decyple.com/gs-home.jpg');
+        background-size: cover;
+        height: 100vh;
+        color: white; /* Optional: to ensure text is visible on a dark background */
+    }
+</style>
+
+
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div style="background-image: url('https://decyple.com/gs-home.jpg'); background-size: cover; height: 100vh;">
+    <AuthorizeView Roles="admin">
+        <div class="alert alert-danger" role="alert">
+            Your are in Administrator mode!
+        </div>
+    </AuthorizeView>
 
-Welcome to your new app.
+    <AuthorizeView Roles="user">
+    </AuthorizeView>
+</div>
