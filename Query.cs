@@ -277,6 +277,23 @@ namespace GymSync {
 				.Join(_context.ITEM, i => i.equipment.equipment_id, it => it.item_id, (i, it) => new EquipmentView(i.equipment.equipment_id, it.item_name, i.equipment.location_name, i.equipment.in_use))
 				.ToListAsync();
 		}
+
+		public async Task<List<StaffJobView>> GetUserAndJobForStaffAll() {
+			// For data being propagated through the query, the extensions won't help
+			// This method allows missing columns when joining the info from the JOB table since a staff member may not have a job
+
+			return await _context.STAFF_x_JOB
+				// Resolve the job for each staff member.  If the job doesn't exist, the job info will be null
+				.LeftJoin(_context.JOB, sj => sj.job_id, j => j.job_id, (sj, j) => new { sj.staff_id, Job = j })
+				// Resolve the user for each staff member
+				.Join(_context.USER_x_STAFF, i => i.staff_id, us => us.staff_id, (i, us) => new { i.staff_id, i.Job, us.user_id })
+				.Join(_context.USER, i => i.user_id, u => u.user_id, (i, u) => new { i.staff_id, User = new UserView(u.user_id, u.firstName, u.lastName), i.Job })
+				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
+				// The job columns have to be resolved client-side since expression trees don't support null-coalescing / null-propagation operators
+				.AsAsyncEnumerable()
+				.Select(i => new StaffJobView(i.staff_id, i.User.UserID, i.User.FirstName, i.User.LastName, i.Job?.job_name ?? "No job assigned", i.Job?.job_description ?? "", i.Job?.hourly_wage ?? 0))
+				.ToListAsync();
+		}
 	}
 
 	public record class StaticGroup<TKey, TElement>(TKey Key, IEnumerable<TElement> Elements) : IGrouping<TKey, TElement> {
@@ -302,6 +319,17 @@ namespace GymSync {
 		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TTo>
 		where TTo : IQueryKeyable<TTo, int> {
 			return query.Join(to, TCross.GetForeignKey(), TTo.GetPrimaryKey(), (_, s) => s);
+		}
+
+		public static IQueryable<TResult> LeftJoin<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer, IQueryable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner?, TResult>> resultSelector) {
+			// (group, inner) => resultSelector(group.Key, inner)
+			var parameterGroup = Expression.Parameter(typeof(StaticGroup<TOuter, TInner?>), "group");
+			var parameterInner = Expression.Parameter(typeof(TInner?), "inner");
+			var invoke = Expression.Invoke(resultSelector, Expression.Property(parameterGroup, nameof(StaticGroup<TOuter, TInner>.Key)), parameterInner);
+			var selector = Expression.Lambda<Func<StaticGroup<TOuter, TInner>, TInner?, TResult>>(invoke, parameterGroup, parameterInner);
+
+			return outer.GroupJoin(inner, outerKeySelector, innerKeySelector, (o, i) => new StaticGroup<TOuter, TInner>(o, i))
+				.SelectMany(g => g.Elements.DefaultIfEmpty(), selector);
 		}
 
 		public static IQueryable<TCross> ToCrossReferencePrimary<TFrom, TCross>(this IQueryable<TFrom> query, IQueryable<TCross> cross)

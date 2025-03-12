@@ -56,10 +56,7 @@ else
     private bool _ready;
 
     //List of StaffJobView classes for page info
-    private List<StaffJobView> StaffJobsList = new List<StaffJobView>();
-
-    //local data transfer object for working with IQueryable
-    public class StaffDto { public int staff_id { get; set; } }
+    private List<StaffJobView> StaffJobsList = [];
 
     //Code for loading the page
     protected override async Task OnInitializedAsync()
@@ -68,27 +65,8 @@ else
 
         _query = new Query(DbContext);
 
-
-        //get the list of members from the user_x_staff list.
-        foreach (var staff in await DbContext.STAFF.Select(t => new StaffDto { staff_id = t.staff_id }).ToListAsync())
-        {
-            //find the user id
-            UserView userView = await _query.StaffToUser(staff.staff_id);
-            JobEntity job = await _query.StaffToJob(staff.staff_id);
-
-            if ((job != null) && (userView != null))
-            {
-                StaffJobsList.Add(new StaffJobView(staff.staff_id, userView.UserID, userView.FirstName, userView.LastName, job.job_name, job.job_description, job.hourly_wage));
-            }
-            else if (userView != null)
-            {
-                StaffJobsList.Add(new StaffJobView(staff.staff_id, userView.UserID, userView.FirstName, userView.LastName, "No current job", "NA", 0.00f));
-            }
-            else
-            {
-                StaffJobsList.Add(new StaffJobView(staff.staff_id, 0, "NA", "NA", "No current job", "NA", 0.00f));
-            }
-        }
+        // Get the information for each staff member
+        StaffJobsList = await _query.GetUserAndJobForStaffAll();
 
 		_ready = true;
 	}
