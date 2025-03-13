@@ -74,6 +74,10 @@
     </div> 
 *@
 
+    <div class="sidebar" hidden="@hideNavMenu">
+        <NavMenu />
+    </div>
+
     <main>
         <div class="top-row px-4" style="background: #000000;">
 @*
@@ -85,6 +89,11 @@
                 </NavLink>
             </div> 
 *@
+
+            <div class="pt-1 mb-4">
+                @* <button data-mdb-button-init data-mdb-ripple-init class="btn btn-dark btn-lg btn-block" @onclick="OpenNavMenu">☰</button> *@
+                <button data-mdb-button-init data-mdb-ripple-init class="btn-dark btn-lg btn-block" @onclick="OpenNavMenu">☰</button>
+            </div>
 
 
             <div class="nav-item px-3">
@@ -128,6 +137,7 @@
 
 @code {
     private string? currentUrl;
+    private bool hideNavMenu { get; set; } = true;
 
     protected override void OnInitialized()
     {
@@ -144,5 +154,13 @@
     public void Dispose()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    public void OpenNavMenu()
+    {
+        if (hideNavMenu)
+            hideNavMenu = false;
+            else
+            hideNavMenu = true;
     }
 }
