@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace GymSync {
-	public partial class Query(ApplicationDbContext context) {
+	public class Query(ApplicationDbContext context) {
 		private readonly ApplicationDbContext _context = context;
 
 		#region Cross-Reference Queries
@@ -286,7 +286,7 @@ namespace GymSync {
 		}
 	}
 
-	public static class QueryExtensions {
+	public static partial class QueryExtensions {
 		public static IQueryable<TResult> AnonymousMergeCrossReferencePrimary<TAnonymous, TCross, TResult>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TCross, TResult>> resultSelector)
 		where TCross : ICrossReference<TCross> {
 			return query.Join(cross, anonymousKeySelector, TCross.GetPrimaryKey(), resultSelector);
@@ -294,7 +294,7 @@ namespace GymSync {
 
 		public static IQueryable<TResult> AnonymouseMergeCrossReferencePrimaryAllowNull<TAnonymous, TCross, TResult>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TCross?, TResult>> resultSelector)
 		where TCross : ICrossReference<TCross> {
-			return query.LeftJoin(cross, anonymousKeySelector, TCross.GetPrimaryKey(), resultSelector);
+			return query.LeftOuterJoin(cross, anonymousKeySelector, TCross.GetPrimaryKey(), resultSelector);
 		}
 
 		public static IQueryable<TResult> AnonymousMergeCrossReferenceForeign<TAnonymous, TCross, TResult>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TCross, TResult>> resultSelector)
@@ -304,7 +304,7 @@ namespace GymSync {
 
 		public static IQueryable<TResult> AnonymousMergeCrossReferenceForeignAllowNull<TAnonymous, TCross, TResult>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TCross?, TResult>> resultSelector)
 		where TCross : ICrossReference<TCross> {
-			return query.LeftJoin(cross, anonymousKeySelector, TCross.GetForeignKey(), resultSelector);
+			return query.LeftOuterJoin(cross, anonymousKeySelector, TCross.GetForeignKey(), resultSelector);
 		}
 
 		public static IQueryable<TResult> AnonymousMergeWhereMatchesKey<TAnonymous, TTo, TResult>(this IQueryable<TAnonymous> query, IQueryable<TTo> to, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TTo, TResult>> resultSelector)
@@ -314,7 +314,7 @@ namespace GymSync {
 
 		public static IQueryable<TResult> AnonymousMergeWhereMatchesKeyAllowNull<TAnonymous, TTo, TResult>(this IQueryable<TAnonymous> query, IQueryable<TTo> to, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TTo?, TResult>> resultSelector)
 		where TTo : IQueryKeyable<TTo, int> {
-			return query.LeftJoin(to, anonymousKeySelector, TTo.GetPrimaryKey(), resultSelector);
+			return query.LeftOuterJoin(to, anonymousKeySelector, TTo.GetPrimaryKey(), resultSelector);
 		}
 
 		public static IQueryable<TAnonymous> AnonymousWhereMatchesKey<TAnonymous, TTo>(this IQueryable<TAnonymous> query, IQueryable<TTo> to, Expression<Func<TAnonymous, int>> anonymousKeySelector)
@@ -347,7 +347,7 @@ namespace GymSync {
 		public static IQueryable<TResult> MergeFromCrossReferencePrimaryAllowNull<TCross, TTo, TResult>(this IQueryable<TCross> query, IQueryable<TTo> to, Expression<Func<TCross, TTo?, TResult>> resultSelector)
 		where TCross : ICrossReference<TCross>, ICrossReferencePrimary<TTo>
 		where TTo : IQueryKeyable<TTo, int> {
-			return query.LeftJoin(to, TCross.GetPrimaryKey(), TTo.GetPrimaryKey(), resultSelector);
+			return query.LeftOuterJoin(to, TCross.GetPrimaryKey(), TTo.GetPrimaryKey(), resultSelector);
 		}
 
 		public static IQueryable<TResult> MergeFromCrossReferenceForeign<TCross, TTo, TResult>(this IQueryable<TCross> query, IQueryable<TTo> to, Expression<Func<TCross, TTo, TResult>> resultSelector)
@@ -359,7 +359,7 @@ namespace GymSync {
 		public static IQueryable<TResult> MergeFromCrossReferenceForeignAllowNull<TCross, TTo, TResult>(this IQueryable<TCross> query, IQueryable<TTo> to, Expression<Func<TCross, TTo?, TResult>> resultSelector)
 		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TTo>
 		where TTo : IQueryKeyable<TTo, int> {
-			return query.LeftJoin(to, TCross.GetForeignKey(), TTo.GetPrimaryKey(), resultSelector);
+			return query.LeftOuterJoin(to, TCross.GetForeignKey(), TTo.GetPrimaryKey(), resultSelector);
 		}
 
 		public static IQueryable<TResult> MergeWhereKeysMatch<TFrom, TTo, TResult>(this IQueryable<TFrom> query, IQueryable<TTo> to, Expression<Func<TFrom, TTo, TResult>> resultSelector)
@@ -371,7 +371,7 @@ namespace GymSync {
 		public static IQueryable<TResult> MergeWhereKeysMatchAllowNull<TFrom, TTo, TResult>(this IQueryable<TFrom> query, IQueryable<TTo> to, Expression<Func<TFrom, TTo?, TResult>> resultSelector)
 		where TFrom : IQueryKeyable<TFrom, int>
 		where TTo : IQueryKeyable<TTo, int> {
-			return query.LeftJoin(to, TFrom.GetPrimaryKey(), TTo.GetPrimaryKey(), resultSelector);
+			return query.LeftOuterJoin(to, TFrom.GetPrimaryKey(), TTo.GetPrimaryKey(), resultSelector);
 		}
 
 		public static IQueryable<TResult> MergeWithCrossReferencePrimary<TFrom, TCross, TResult>(this IQueryable<TFrom> query, IQueryable<TCross> cross, Expression<Func<TFrom, TCross, TResult>> resultSelector)
@@ -383,7 +383,7 @@ namespace GymSync {
 		public static IQueryable<TResult> MergeWithCrossReferencePrimaryAllowNull<TFrom, TCross, TResult>(this IQueryable<TFrom> query, IQueryable<TCross> cross, Expression<Func<TFrom, TCross?, TResult>> resultSelector)
 		where TFrom : IQueryKeyable<TFrom, int>
 		where TCross : ICrossReference<TCross>, ICrossReferencePrimary<TFrom> {
-			return query.LeftJoin(cross, TFrom.GetPrimaryKey(), TCross.GetPrimaryKey(), resultSelector);
+			return query.LeftOuterJoin(cross, TFrom.GetPrimaryKey(), TCross.GetPrimaryKey(), resultSelector);
 		}
 
 		public static IQueryable<TResult> MergeWithCrossReferenceForeign<TFrom, TCross, TResult>(this IQueryable<TFrom> query, IQueryable<TCross> cross, Expression<Func<TFrom, TCross, TResult>> resultSelector)
@@ -395,18 +395,11 @@ namespace GymSync {
 		public static IQueryable<TResult> MergeWithCrossReferenceForeignAllowNull<TFrom, TCross, TResult>(this IQueryable<TFrom> query, IQueryable<TCross> cross, Expression<Func<TFrom, TCross?, TResult>> resultSelector)
 		where TFrom : IQueryKeyable<TFrom, int>
 		where TCross : ICrossReference<TCross>, ICrossReferenceForeign<TFrom> {
-			return query.LeftJoin(cross, TFrom.GetPrimaryKey(), TCross.GetForeignKey(), resultSelector);
+			return query.LeftOuterJoin(cross, TFrom.GetPrimaryKey(), TCross.GetForeignKey(), resultSelector);
 		}
 
-		public static IQueryable<TResult> LeftJoin<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer, IQueryable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner?, TResult>> resultSelector) {
-			// (group, inner) => resultSelector(group.Key, inner)
-			var parameterGroup = Expression.Parameter(typeof(StaticGroup<TOuter, TInner?>), "group");
-			var parameterInner = Expression.Parameter(typeof(TInner?), "inner");
-			var invoke = Expression.Invoke(resultSelector, Expression.Property(parameterGroup, nameof(StaticGroup<TOuter, TInner>.Key)), parameterInner);
-			var selector = Expression.Lambda<Func<StaticGroup<TOuter, TInner>, TInner?, TResult>>(invoke, parameterGroup, parameterInner);
-
-			return outer.GroupJoin(inner, outerKeySelector, innerKeySelector, (o, i) => new StaticGroup<TOuter, TInner>(o, i))
-				.SelectMany(g => g.Elements.DefaultIfEmpty(), selector);
+		public static IQueryable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer, IQueryable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner?, TResult>> resultSelector) {
+			return QueryReflectionMethods.CreateLeftOuterJoin(outer, inner, outerKeySelector, innerKeySelector, resultSelector!);
 		}
 
 		public static IQueryable<TCross> ToCrossReferencePrimary<TFrom, TCross>(this IQueryable<TFrom> query, IQueryable<TCross> cross)

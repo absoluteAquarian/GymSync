@@ -15,58 +15,58 @@
 
 @if (!_ready)
 {
-    <p><em>Loading...</em></p>
+	<p><em>Loading...</em></p>
 }
 else
 {
-    <table class="equipment-table">
-        <thead>
-            <tr>
-                <th>Staff ID</th>
-                <th>User ID</th>
-                <th>Name</th>
-                <th>Job Name</th>
-                <th>Job Description</th>
-                <th>Hourly Wage</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var staff in StaffJobsList)
-            {
-                <tr>
-                    <td>@staff.StaffID</td>
-                    <td>@staff.UserID</td>
-                    <td>@staff.FirstName @staff.LastName</td>
-                    <td>@staff.JobName</td>
-                    <td>@staff.JobDescription</td>
-                    <td>@staff.HourlyWage</td>
-                </tr>	
-            }
-        </tbody>
+	<table class="equipment-table">
+		<thead>
+			<tr>
+				<th>Staff ID</th>
+				<th>User ID</th>
+				<th>Name</th>
+				<th>Job Name</th>
+				<th>Job Description</th>
+				<th>Hourly Wage</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var staff in StaffJobsList)
+			{
+				<tr>
+					<td>@staff.StaffID</td>
+					<td>@staff.UserID</td>
+					<td>@staff.FirstName @staff.LastName</td>
+					<td>@staff.JobName</td>
+					<td>@staff.JobDescription</td>
+					<td>@staff.HourlyWage</td>
+				</tr>	
+			}
+		</tbody>
 
-    </table>
+	</table>
 
 
 }
 
 @code {
 
-    //set the required variables for each time the page is loaded.
-    private Query _query;
-    private bool _ready;
+	//set the required variables for each time the page is loaded.
+	private Query _query;
+	private bool _ready;
 
-    //List of StaffJobView classes for page info
-    private List<StaffJobView> StaffJobsList = [];
+	//List of StaffJobView classes for page info
+	private List<StaffJobView> StaffJobsList = [];
 
-    //Code for loading the page
-    protected override async Task OnInitializedAsync()
-    {
-        _ready = false;
+	//Code for loading the page
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
 
-        _query = new Query(DbContext);
+		_query = new Query(DbContext);
 
-        // Get the information for each staff member
-        StaffJobsList = await _query.GetUserAndJobForStaffAll();
+		// Get the information for each staff member
+		StaffJobsList = await _query.GetUserAndJobForStaffAll();
 
 		_ready = true;
 	}
