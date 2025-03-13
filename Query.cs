@@ -270,7 +270,7 @@ namespace GymSync {
 			// TODO: Return empty client lists for trainers with no clients?
 			return await _context.TRAINER
 				.ToCrossReferenceForeign(_context.APPOINTMENT_x_TRAINER)
-				// Resolve the trainer user for each appointmen
+				// Resolve the trainer user for each appointment
 				.AnonymousMergeCrossReferenceForeign(_context.USER_x_TRAINER, at => at.trainer_id, (at, ut) => new { at.appointment_id, at.trainer_id, ut.user_id })
 				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.appointment_id, anon.trainer_id, TrainerUser = new UserView(u.user_id, u.firstName, u.lastName) })
 				// Resolve the client user for each appointment
