@@ -1,13 +1,63 @@
 ﻿@page "/auth"
-
 @using Microsoft.AspNetCore.Authorization
-
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
-<PageTitle>Auth</PageTitle>
 
-<h1>You are authenticated</h1>
+<h3>Role Detection Page</h3>
 
-<AuthorizeView>
+<AuthorizeView Roles="admin">
+    <PageTitle>Administration Page</PageTitle>
+
+    <div class="alert alert-danger" role="alert">
+        Your are in Administrator mode!
+    </div>
+
     Hello @context.User.Identity?.Name!
+    <p>You are in the admin group!</p>
 </AuthorizeView>
+
+<AuthorizeView Roles="staff">
+    <div class="alert alert-primary" role="alert">
+        Your are in Staff mode!
+    </div>
+
+    Hello @context.User.Identity?.Name!
+    <p>You can not see the contents of this page as youre in the staff group.</p>
+</AuthorizeView>
+
+<AuthorizeView Roles="trainer">
+    <div class="alert alert-success" role="alert">
+        Your are in Trainer mode!
+    </div>
+
+    Hello @context.User.Identity?.Name!
+    <p>You can not see the contents of this page as youre in the trainer group.</p>
+</AuthorizeView>
+
+<AuthorizeView Roles="user">
+    <div class="alert alert-dark" role="alert">
+        Your are in User mode!
+    </div>
+
+    Hello @context.User.Identity?.Name!
+    <p>You can not see the contents of this page as youre in the user group.</p>
+</AuthorizeView>
+
+
+@code {
+    private bool _isAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        // Check if the user is in the "Admin" role
+        _isAdmin = user.IsInRole("admin");
+        if (_isAdmin)
+            Console.WriteLine("true");
+        else
+            Console.WriteLine("false");
+    }
+}
