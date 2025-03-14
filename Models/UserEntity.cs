@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using GymSync.Querying;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 
