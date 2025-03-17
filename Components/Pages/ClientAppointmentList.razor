@@ -64,7 +64,7 @@
 	public int _client_id { get; set; }
 
 	private UserView _currentUser = new UserView(0, "first", "last");
-	private List<AppointmentEntity> _appointmentList = new List<AppointmentEntity>();
+	private List<AppointmentEntity> _appointmentList = [];
 
 
 	protected override async Task OnInitializedAsync()
@@ -74,20 +74,14 @@
 		_query = new Query(_dbContext);
 
 		//Get the current user's information for referenece on page
-		_currentUser = await _query.ClientToUser(_client_id);
+		if (await _query.ClientToUser(_client_id) is UserView user)
+			_currentUser = user;
 
 		//get the appointment list for the user
 		//This query uses the client's id to retrieve all of the appointments associated with them in the database
-		foreach(var appt in await _query.ClientToAppointmentAll(_client_id))
-		{
-			_appointmentList.Add(appt);
-		}
+		//Then sort the list to put them in order from closest upcoming appointment
+		_appointmentList = (await _query.ClientToAppointmentAll(_client_id)).OrderBy(appt => appt.start_time).ToList();
 
-		//sort the list to put them in order from closest upcoming appointment
-		_appointmentList = _appointmentList.OrderBy(appt => appt.start_time).ToList();
-
-		
-		
 		_ready = true;
 	}
 }

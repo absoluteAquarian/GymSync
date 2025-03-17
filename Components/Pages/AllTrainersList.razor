@@ -3,6 +3,7 @@
 @page "/trainer-list"
 @using GymSync.Data
 @using GymSync.Models
+@using GymSync.Querying
 @using GymSync.Views
 @using Microsoft.EntityFrameworkCore;
 
@@ -20,10 +21,10 @@ This page lists the clients for each trainer.
 }
 else
 {
-	@foreach (var trainer in _trainers)
+	@foreach (var info in _trainersWithClients)
 	{
-		<h3>Trainer: @trainer.FirstName @trainer.LastName</h3>
-		@if (_trainerUserToClients.TryGetValue(trainer.UserID, out var clients) && clients.Count > 0)
+		<h3>Trainer: @info.Key.FirstName @info.Key.LastName</h3>
+		@if (info.Elements.Any())
 		{
 			<table class="table">
 				<thead>
@@ -33,7 +34,7 @@ else
 					</tr>
 				</thead>
 				<tbody>
-					@foreach (var client in clients)
+					@foreach (var client in info.Elements)
 					{
 						<tr>
 							<td>@client.UserID</td>
@@ -54,24 +55,14 @@ else
 	private Query _query;
 	private bool _ready;
 
-	private List<UserView> _trainers = [];
-	private Dictionary<int, List<UserView>> _trainerUserToClients = [];
+	private List<StaticGroup<UserView, UserView>> _trainersWithClients = [];
 
 	protected override async Task OnInitializedAsync() {
 		_ready = false;
 
 		_query = new Query(DbContext);
 
-		// Get all trainers with one query rather than individual queries for each trainer
-		_trainers = await _query.TrainerToUserAll();
-
-		// Since the previous query accessed USER_x_TRAINER, accessing it again (via TrainerToUser) here shouldn't incur a database hit in theory
-		// But even if it does, only one field is being accessed, so the performance impact should be minimal
-		foreach (var trainer in await DbContext.TRAINER.Select(t => t.trainer_id).ToListAsync()) {
-			var user = await _query.TrainerToUser(trainer);
-			if (user != null)
-				_trainerUserToClients[user.UserID] = await _query.GetClientsForTrainer(trainer);
-		}
+		_trainersWithClients = await _query.GetClientsForTrainerAll();
 
 		_ready = true;
 	}
