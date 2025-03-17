@@ -50,8 +50,9 @@ namespace GymSync {
 		}
 
 		public async Task<List<AppointmentEntity>> TrainerToAppointmentAll(int trainer_id) {
-			return await _context.APPOINTMENT_x_TRAINER
-				.Where(ac => ac.trainer_id == trainer_id)
+			return await _context.TRAINER
+				.Where(t => t.trainer_id == trainer_id)
+				.ToCrossReferenceForeign(_context.APPOINTMENT_x_TRAINER)
 				.FromCrossReferencePrimary(_context.APPOINTMENT)
 				.ToListAsync();
 		}
