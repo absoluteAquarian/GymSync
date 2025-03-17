@@ -70,15 +70,10 @@
 		
 		Query _query = new Query(_dbContext);
 
-		_currentUser = await _query.TrainerToUser(trainer_id);
+		if (await _query.TrainerToUser(trainer_id) is UserView user)
+			_currentUser = user;
 
-		foreach (var appt in await _query.TrainerToAppointmentAll(trainer_id))
-		{
-			_appointmentList.Add(appt);	
-		}
-
-		_appointmentList = _appointmentList.OrderBy(appt => appt.start_time).ToList();
-
+		_appointmentList = (await _query.TrainerToAppointmentAll(trainer_id)).OrderBy(a => a.start_time).ToList();
 
 		_ready = true;
 	}
