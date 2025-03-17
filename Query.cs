@@ -8,6 +8,14 @@ namespace GymSync {
 	public class Query(ApplicationDbContext context) {
 		private readonly ApplicationDbContext _context = context;
 
+		#region User Look-up
+		public async Task<UserEntity?> UserToUser(int userID) {
+			return await _context.USER
+				.Where(uid => uid.user_id == userID)
+				.FirstOrDefaultAsync();
+		}
+		#endregion
+
 		#region Cross-Reference Queries
 		public async Task<ClientEntity?> AppointmentToClient(int appointmentID) {
 			return await _context.APPOINTMENT_x_CLIENT
@@ -177,6 +185,7 @@ namespace GymSync {
 				.AsUserView()
 				.ToListAsync();
 		}
+				
 
 		public async Task<ClientEntity?> UserToClient(int userID) {
 			return await _context.USER_x_CLIENT

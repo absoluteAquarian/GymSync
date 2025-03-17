@@ -1,6 +1,6 @@
 ﻿@inject ApplicationDbContext _dbContext;
 
-@page "/trainer-appointment-list";
+@page "/trainer-appointment-list/{trainer_id:int}";
 @using GymSync.Components;
 @using GymSync.Data;
 @using GymSync.Models;
@@ -58,7 +58,8 @@
 	private Query _query;
 	private bool _ready;
 
-	int trainer_id = 1;
+	[Parameter]
+	public int trainer_id { get; set; }
 
 	private UserView _currentUser = new UserView(0, "first", "last");
 	private List<AppointmentEntity> _appointmentList = new List<AppointmentEntity>();
@@ -66,8 +67,8 @@
 	protected override async Task OnInitializedAsync()
 	{
 		_ready = false;
-
-		_query = new Query(_dbContext);
+		
+		Query _query = new Query(_dbContext);
 
 		_currentUser = await _query.TrainerToUser(trainer_id);
 

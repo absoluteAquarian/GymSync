@@ -87,6 +87,33 @@ h1:focus {
     background-color: darkorange;
 }
 
+.home-page-main{
+    width: 90%;
+    margin: 0px 30px;
+    background-color: antiquewhite;
+}
+
+.trainer-section {
+    width: 30%;
+    margin: 0% 1%;
+    float: left;
+    background-color: lightblue;
+}
+
+.staff-section {
+    width: 30%;
+    margin: 0% 1%;
+    float: left;
+    background-color: lightcoral;
+}
+
+.client-section {
+    width: 30%;
+    margin: 0% 1%;
+    float: left;
+    background-color: lightgrey;
+}
+
 
 
 
