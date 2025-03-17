@@ -1,5 +1,6 @@
 using GymSync.Components;
 using GymSync.Data;
+using GymSync.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -11,6 +12,8 @@ namespace GymSync {
 			// Add services to the container.
 			builder.Services.AddRazorComponents()
 				.AddInteractiveServerComponents();
+			
+			builder.Services.AddScoped<UserSessionService>();
 
 			var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
 
