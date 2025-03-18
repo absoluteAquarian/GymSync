@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using GymSync_Interface_v2.Data
+@using GymSync_Interface_v2.Components.Layout
 
 
 @inject SignInManager<ApplicationUser> SignInManager
@@ -12,11 +13,94 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
+@layout MainLayout
 
 <PageTitle>Log in</PageTitle>
 
 
 <style type="text/css">
+    body {
+        background: #000000;
+    }
+
+    .background {
+        background-image: url('https://decyple.com/gs-home-v2.jpg');
+        background-size: 100%;
+        height: 100vh;
+        color: white;
+    }
+
+    .top-row {
+        justify-content: flex-end;
+        display: flex;
+        align-items: center;
+    }
+
+    .container {
+        width: 100vw;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .left {
+        flex: 1;
+    }
+
+    .right {
+        display: flex;
+        gap: 10px;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    .menuButton {
+        font-size: 25px;
+        padding: 5px 10px;
+        border: 1px solid #000;
+        cursor: pointer;
+    }
+
+    body 
+    {
+        background: #000000;
+    }
+
+    .card {
+        color: #5be1e6;
+        background: #000000;
+        border: 2px solid #5be1e6;
+        border-radius: 1rem;
+    }
+
+    h2 
+    {
+        color: #ffffff;
+    }
+
+    h5 
+    {
+        color: #ffffff;
+    }
+
+    .input 
+    {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 2px solid #5be1e6;
+        border-radius: 36px;
+        background-color: #000000;
+        color: #5be1e6;
+    }
+</style>
+
+
+@* <style type="text/css">
     body {
         background: #000000;
     }
@@ -104,19 +188,26 @@
         background-color: #000000;
         color: #5be1e6;
     }
-</style>
+</style> *@
+
+
+
+<div class="sidebar" hidden="@hideNavMenu">
+    <NavMenu />
+</div>
 
 
 
 <section class="vh-100">
+
+
+
     <div class="container py-5 h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col col-xl-10">
                 <div class="card">
                     <div class="row g-0">
                         <div class="col-md-6 col-lg-5 d-none d-md-block">
-                            @* <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/img1.webp"
-                            alt="login form" class="img-fluid" style="border-radius: 1rem 0 0 1rem;" /> *@
                             <img src="https://decyple.com/gs-login-i1a.jpg"
                                  alt="login form" class="img-fluid" style="border-radius: 1rem 0 0 1rem;" />
                         </div>
@@ -129,7 +220,6 @@
                                          alt="GymSync Logo" class="img-fluid" style="border-radius: 1rem 0 0 1rem;" />
                                 </div>
 
-                                @* <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Sign into your account</h5> *@
 
                                 <StatusMessage Message="@errorMessage" />
                                 <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
@@ -153,7 +243,6 @@
                                         </label>
                                     </div>
                                     <div>
-                                        @* <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button> *@
                                         <button type="submit" class="button -dark" aria-label="Log in">Log in</button>
                                     </div>
                                     <div>
@@ -179,8 +268,10 @@
 </section>
 
 
+
 @code {
     private string? errorMessage;
+    private bool hideNavMenu { get; set; } = true;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -239,5 +330,13 @@
 
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
+    }
+
+    public void OpenNavMenu()
+    {
+        if (hideNavMenu)
+            hideNavMenu = false;
+        else
+            hideNavMenu = true;
     }
 }

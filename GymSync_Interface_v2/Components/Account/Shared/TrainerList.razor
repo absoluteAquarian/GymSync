@@ -1,0 +1,176 @@
+﻿@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@page "/trainerlist"
+
+@using GymSync_Interface_v2.Data
+@using GymSync_Interface_v2.Models
+@using GymSync_Interface_v2.Views
+@using Microsoft.EntityFrameworkCore;
+
+<PageTitle>GymSync - Trainer List</PageTitle>
+
+<style type="text/css">
+	body {
+		background: #000000;
+	}
+
+	.background {
+		background-image: url('https://decyple.com/gs-home-v2.jpg');
+		background-size: 100%;
+		height: 100vh;
+		color: white;
+	}
+
+	.top-row {
+		justify-content: flex-end;
+		display: flex;
+		align-items: center;
+	}
+
+	.container {
+		width: 100vw;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 10px;
+	}
+
+	.left {
+		flex: 1;
+	}
+
+	.right {
+		display: flex;
+		gap: 10px;
+	}
+
+	* {
+		box-sizing: border-box;
+		color: whitesmoke;
+	}
+
+	.card {
+		color: #5be1e6;
+		background: #000000;
+		border: 2px solid #5be1e6;
+		border-radius: 1rem;
+	}
+
+	.card-body {
+		color: whitesmoke;
+	}
+
+	.table{
+		color: whitesmoke;
+	}
+
+	h1 {
+		color: whitesmoke;
+	}
+</style>
+
+
+
+<PageTitle>Trainer List</PageTitle>
+
+<AuthorizeView Roles="admin">
+	<div class="alert alert-danger" role="alert">
+		Your are in Administrator mode!
+	</div>
+</AuthorizeView>
+
+<h1>List of Clients per Trainer</h1>
+<br />
+This page lists the clients for each trainer.
+<br />
+<br />
+
+<AuthorizeView Roles="admin">
+@if (!_ready)
+{
+	<p><br /><br /><em>Loading...</em><br /><br /></p>
+}
+else
+{
+
+	<div class="row">
+		@foreach (var trainer in _trainers)
+		{
+			@if (_trainerUserToClients.TryGetValue(trainer.UserID, out var clients) && clients.Count > 0)
+			{
+				<div class="col-md-4">
+					<div class="card mb-3">
+						<div class="card-header">
+							<h4>Trainer: @trainer.FirstName @trainer.LastName</h4>
+						</div>
+						<div class="card-body">
+							<table class="table">
+								<thead>
+									<tr>
+										<th>Client ID</th>
+										<th>Client Name</th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (var client in clients)
+									{
+										<tr>
+											<td>@client.UserID</td>
+											<td>@client.FirstName @client.LastName</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			}
+		}
+	</div>
+}
+</AuthorizeView>
+
+@code {
+	private Query? _query;
+	private bool _ready;
+
+	private List<UserView> _trainers = [];
+	private Dictionary<int, List<UserView>> _trainerUserToClients = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		// Get the authentication states:
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+		// Get the authentication state of current user:
+		var userState = authState.User;
+
+		// If the user is not an admin, redirect to the home page:
+		if (userState.IsInRole("admin"))
+		{
+			_ready = false;
+
+			_query = new Query(DbContext);
+
+			// Get all trainers with one query rather than individual queries for each trainer
+			_trainers = await _query.TrainerToUserAll();
+
+			// Since the previous query accessed USER_x_TRAINER, accessing it again (via TrainerToUser) here shouldn't incur a database hit in theory
+			// But even if it does, only one field is being accessed, so the performance impact should be minimal
+			foreach (var trainer in await DbContext.TRAINER.Select(t => t.trainer_id).ToListAsync())
+			{
+				var user = await _query.TrainerToUser(trainer);
+				if (user != null)
+					_trainerUserToClients[user.UserID] = await _query.GetClientsForTrainer(trainer);
+			}
+
+			_ready = true;
+		}
+		else
+		{
+			NavigationManager.NavigateTo("/");
+		}
+	}
+}

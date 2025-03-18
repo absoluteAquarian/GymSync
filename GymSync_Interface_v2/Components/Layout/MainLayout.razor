@@ -3,9 +3,8 @@
 @inject NavigationManager NavigationManager
 
 
-
 <style type="text/css">
-    .button 
+    .button
     {
         display: flex;
         overflow: hidden;
@@ -39,13 +38,13 @@
             opacity: .85;
         }
 
-    &:active 
+    &:active
     {
         transition: all 150ms linear;
         opacity: .75;
     }
 
-    &:focus 
+    &:focus
     {
         outline: 1px dotted #959595;
         outline-offset: -4px;
@@ -53,7 +52,7 @@
 
     }
 
-    .button.-dark 
+    .button.-dark
     {
         color: #000000;
         background: #5be1e6;
@@ -65,38 +64,48 @@
     }
 
     }
+
+    .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin: 25px;
+    }
+
+    .left {
+        flex: 1;
+    }
+
+    .right {
+        display: flex;
+        gap: 10px;
+    }
+
+    .menuButton {
+        font-size: 25px;
+        padding: 5px 10px;
+        border: 1px solid #000;
+        cursor: pointer;
+    }
 </style>
 
-<div class="page">
-@* 
-    <div class="sidebar">
-        <NavMenu />
-    </div> 
-*@
 
+
+<div class="page">
     <div class="sidebar" hidden="@hideNavMenu">
         <NavMenu />
     </div>
 
     <main>
-        <div class="top-row px-4" style="background: #000000;">
-@*
-            <a href="/Account/Login">Login</a>
+        <div class="px-4 container" style="background: #000000;">
 
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="Account/Login">
-                    <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                </NavLink>
-            </div> 
-*@
-
-            <div class="pt-1 mb-4">
-                @* <button data-mdb-button-init data-mdb-ripple-init class="btn btn-dark btn-lg btn-block" @onclick="OpenNavMenu">☰</button> *@
-                <button data-mdb-button-init data-mdb-ripple-init class="btn-dark btn-lg btn-block" @onclick="OpenNavMenu">☰</button>
+            <div class="pt-1 left">
+                <button data-mdb-button-init data-mdb-ripple-init class="btn-dark btn-lg btn-block menuButton" @onclick="OpenNavMenu">☰</button>
             </div>
 
-
-            <div class="nav-item px-3">
+            <div class="nav-item px-3 right">
                 <form action="Account/Login">
                     <AntiforgeryToken />
                     <input type="hidden" name="ReturnUrl" value="@currentUrl" />
@@ -106,8 +115,7 @@
                 </form>
             </div>
 
-
-            <div class="nav-item px-3">
+            <div class="nav-item px-3 right">
                 <form action="Account/Logout" method="post">
                     <AntiforgeryToken />
                     <input type="hidden" name="ReturnUrl" value="@currentUrl" />
@@ -116,10 +124,6 @@
                     </button>
                 </form>
             </div>
-
-
-            @* <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a> *@
-
 
         </div>
 
@@ -160,7 +164,7 @@
     {
         if (hideNavMenu)
             hideNavMenu = false;
-            else
+        else
             hideNavMenu = true;
     }
 }
