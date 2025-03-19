@@ -35,19 +35,20 @@ This page lists the clients for each trainer.
 }
 else
 {
-
 	<div class="row">
 		@foreach (var trainer in _trainers)
 		{
 			@if (_trainerUserToClients.TryGetValue(trainer.UserID, out var clients) && clients.Count > 0)
 			{
 				<div class="col-md-4">
-					<div class="card mb-3">
-						<div class="card-header">
-							<h4>Trainer: @trainer.FirstName @trainer.LastName</h4>
+					<div class="card mb-3 trainer-card">
+
+						<div class="trainer-card-header">
+							<h4 class="trainer-card-header-text">Trainer: @trainer.FirstName @trainer.LastName</h4>
 						</div>
+
 						<div class="card-body">
-							<table class="table">
+							<table class="trainerlist-table">
 								<thead>
 									<tr>
 										<th>Client ID</th>

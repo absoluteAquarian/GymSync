@@ -206,6 +206,64 @@ body {
     color: whitesmoke;
 }
 
+/* Trainer List Cards */
+/* Styling for the card */
+.trainer-card {
+    background-color: white; /* White background for the card */
+    border: 3px solid #5be1e6; /* 3px border with color #5be1e6 */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Light shadow for a floating effect */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effects */
+    padding: 15px;
+}
+
+    /* Glow effect on hover */
+    .trainer-card:hover {
+        box-shadow: 0px 0px 15px 3px rgba(91, 225, 230, 0.8); /* Glowing effect */
+        transform: translateY(-5px); /* Slight lift effect when hovered */
+    }
+
+    /* Styling for card header */
+    .trainer-card .trainer-card-header {
+        background-color: #000000; /* Light gray background for the header */
+        border-bottom: 2px solid #ddd; /* Subtle border for separation */
+        padding: 10px;
+    }
+
+.trainer-card-header-text {
+    color: #5be1e6;
+}
+
+/* Styling for the table */
+.trainerlist-table {
+    width: 100%; /* Ensures the table fills the card body */
+    border-collapse: collapse; /* Makes the table border collapse into a single line */
+}
+
+    /* Styling for table rows and cells */
+    .trainerlist-table th, .trainerlist-table td {
+        padding: 10px;
+        border: 1px solid #ddd; /* Subtle border for each table cell */
+        text-align: left;
+    }
+
+    /* Zebra striping for table rows */
+    .trainerlist-table tr:nth-child(even) {
+        background-color: #f9f9f9; /* Light gray background for even rows */
+    }
+
+    /* Table hover effect */
+    .trainerlist-table tr:hover {
+        background-color: #f1f1f1; /* Slight hover effect for rows */
+    }
+
+/* Optional: Responsive adjustments */
+@media (max-width: 768px) {
+    .trainer-card {
+        margin-bottom: 15px; /* Space out the cards on smaller screens */
+    }
+}
+
 
 
 
