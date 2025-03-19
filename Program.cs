@@ -13,7 +13,11 @@ namespace GymSync {
 			builder.Services.AddRazorComponents()
 				.AddInteractiveServerComponents();
 			
-			builder.Services.AddScoped<UserSessionService>();
+			builder.Services.AddSingleton<UserSessionService>();
+
+			builder.Services.AddHttpsRedirection(options => {
+				options.HttpsPort = 7172;
+			});
 
 			var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
 
@@ -36,6 +40,7 @@ namespace GymSync {
 			}
 
 			app.UseHttpsRedirection();
+
 
 			app.UseStaticFiles();
 			app.UseAntiforgery();

@@ -1,0 +1,109 @@
+﻿@inject ApplicationDbContext _dbContext;
+@inject UserSessionService _UserSession;
+
+@page "/dashboard"
+@using GymSync.Data
+@using GymSync.Models
+@using GymSync.Views;
+@using GymSync.Components;
+@using GymSync.Services;
+@using Microsoft.EntityFrameworkCore;
+
+<PageTitle>GymSync Dashboard</PageTitle>
+
+@if(!_ready)
+{
+	<p>Awaiting server...</p>
+}
+else{
+
+<div class="home-page-main">
+	<h1>Hello, @_userName, welcome to GymSync!</h1>
+
+	<p>This is the main page of the GymSync application</p>
+
+	@if (_isTrainer)
+	{
+		<div class="trainer-section">
+			<p>Welcome to your GymSync Trainer Session.</p>
+			<p> <a href="trainer-appointment-list/@_trainerID">View Your Appointments</a></p>
+		</div>
+	}
+
+	@if (_isStaff)
+	{
+		<div class="staff-section">
+			<p>This is the staff section.</p>
+			<p> <a href="equipment-availability">Click to View Equipment Status</a></p>
+		</div>
+	}
+	@if (_isClient)
+	{
+		<div class="client-section">
+			<p>This is the client section.</p>
+			<p><a href="client-appointment-list/@_clientID"> Link to Client Appointment List</a></p>
+		</div>
+	}
+
+</div>
+
+}
+
+
+
+@code {
+
+	Query _query;
+	private bool _ready;
+
+	//variables for determining the view
+	//userID will be used to lookup the other ID's and determine if the user belongs to those classes
+	private int _userID;
+	private int _trainerID;
+	private int _staffID;
+	private int _clientID;
+
+	private bool _isTrainer = true;
+	private bool _isStaff = true;
+	private bool _isClient = true;
+
+	//variables for user information
+	private string _userName = "Unknown User";
+
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+		if (_UserSession.UserID != null)
+		{
+			_userID = (int)_UserSession.UserID;
+		}
+		
+		_query = new Query(_dbContext);
+
+		UserEntity? currentUser = await _query.UserToUser(_userID);
+		_userName = currentUser != null ? currentUser.firstName.ToUpper() + " " + currentUser.lastName.ToUpper() : "Unknown User";
+
+		//check user id against trainer list and see if they exist
+		TrainerEntity? trainer = await _query.UserToTrainer(_userID);
+		_trainerID = trainer != null ? trainer.trainer_id : 0;
+		_isTrainer = trainer != null;
+
+		//check user against staff list
+		StaffEntity? staff = await _query.UserToStaff(_userID);
+		_staffID = staff != null ? staff.staff_id : 0;
+		_isStaff = staff != null;
+
+		//check user against the client list
+		ClientEntity? client = await _query.UserToClient(_userID);
+		_clientID = client != null ? client.client_id : 0;
+		_isClient = client != null;
+
+
+		_ready = true;
+	}
+
+	int count = 0;
+
+	private void Increment() { count++; }
+
+}
