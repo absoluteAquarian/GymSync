@@ -10,6 +10,10 @@
     <ItemGroup>
     <None Remove="connection.txt" />
   </ItemGroup>
+  
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="wwwroot\Style.css" />
+    </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="connection.txt" />

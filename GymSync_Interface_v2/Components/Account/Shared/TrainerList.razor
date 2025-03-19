@@ -9,71 +9,12 @@
 @using GymSync_Interface_v2.Views
 @using Microsoft.EntityFrameworkCore;
 
+
+<link href="Style.css" rel="stylesheet" />
+
+
 <PageTitle>GymSync - Trainer List</PageTitle>
 
-<style type="text/css">
-	body {
-		background: #000000;
-	}
-
-	.background {
-		background-image: url('https://decyple.com/gs-home-v2.jpg');
-		background-size: 100%;
-		height: 100vh;
-		color: white;
-	}
-
-	.top-row {
-		justify-content: flex-end;
-		display: flex;
-		align-items: center;
-	}
-
-	.container {
-		width: 100vw;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 10px;
-	}
-
-	.left {
-		flex: 1;
-	}
-
-	.right {
-		display: flex;
-		gap: 10px;
-	}
-
-	* {
-		box-sizing: border-box;
-		color: whitesmoke;
-	}
-
-	.card {
-		color: #5be1e6;
-		background: #000000;
-		border: 2px solid #5be1e6;
-		border-radius: 1rem;
-	}
-
-	.card-body {
-		color: whitesmoke;
-	}
-
-	.table{
-		color: whitesmoke;
-	}
-
-	h1 {
-		color: whitesmoke;
-	}
-</style>
-
-
-
-<PageTitle>Trainer List</PageTitle>
 
 <AuthorizeView Roles="admin">
 	<div class="alert alert-danger" role="alert">
