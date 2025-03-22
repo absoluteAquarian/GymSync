@@ -1,0 +1,869 @@
+﻿h1 {
+    color: whitesmoke;
+}
+
+h2 {
+    color: #ffffff;
+}
+
+h5 {
+    color: #ffffff;
+}
+
+.input {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 2px solid #5be1e6;
+    border-radius: 36px;
+    background-color: #000000;
+    color: #5be1e6;
+}
+
+.card {
+    color: #5be1e6;
+    background: #000000;
+    border: 2px solid #5be1e6;
+    border-radius: 1rem;
+}
+
+.card-body {
+    color: whitesmoke;
+}
+
+.table {
+    color: whitesmoke;
+}
+
+/* General table styling */
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: Arial, sans-serif;
+    color: #fff; /* White text for contrast on black background */
+}
+
+    /* Header row styling */
+    .schedule-table thead {
+        background-color: #000; /* Black background for header */
+        color: #5be1e6; /* Use the provided #5be1e6 for header text */
+    }
+
+    .schedule-table th {
+        padding: 12px 15px;
+        text-align: left;
+    }
+
+    /* Data row styling */
+    .schedule-table td {
+        padding: 12px 15px;
+        border: 1px solid #444; /* Slightly lighter border for better contrast */
+        text-align: left;
+    }
+
+    /* Zebra striping for alternating rows */
+    .schedule-table tr:nth-child(even) {
+        background-color: #1a1a1a; /* Dark gray background for even rows */
+    }
+
+    /* Highlighting near appointments */
+    .schedule-table .near-appt {
+        background-color: #5be1e6; /* Light blue background for near appointments */
+        color: black; /* Make text black for better visibility on light blue */
+        font-weight: bold;
+    }
+
+    /* Table hover effect */
+    .schedule-table tr:hover {
+        background-color: #333; /* Darker hover effect */
+    }
+
+/* Responsive adjustments */
+@@media screen and (max-width: 768px) {
+    .schedule-table th, .schedule-table td {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+
+.trainer {
+    font-size: 48px;
+    padding: 20px;
+}
+
+.button {
+    display: flex;
+    overflow: hidden;
+    margin: 25px 25px 25px 0px;
+    padding: 12px 25px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 150ms linear;
+    text-align: center;
+    white-space: nowrap;
+    text-decoration: none !important;
+    text-transform: none;
+    text-transform: capitalize;
+    color: #fff;
+    border: 2px solid #5be1e6;
+    border-radius: 36px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 160px;
+    /* box-shadow: 2px 5px 10px #e4e4e4; */
+    width: 100%;
+    &:hover
+
+{
+    transition: all 150ms linear;
+    opacity: .85;
+}
+
+&:active {
+    transition: all 150ms linear;
+    opacity: .75;
+}
+
+&:focus {
+    outline: 1px dotted #959595;
+    outline-offset: -4px;
+}
+
+}
+
+.button.-dark {
+    color: #000000;
+    background: #5be1e6;
+}
+
+&:focus {
+    outline: 1px dotted white;
+    outline-offset: -4px;
+}
+
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin: 25px;
+}
+
+.menuButton {
+    font-size: 25px;
+    padding: 5px 10px;
+    border: 1px solid #000;
+    cursor: pointer;
+}
+
+body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+    color: whitesmoke;
+}
+
+/* Trainer List Cards */
+
+/* Styling for the card */
+.trainer-card {
+    /* background-color: white;  White background for the card */
+    border: 3px solid #5be1e6; /* 3px border with color #5be1e6 */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Light shadow for a floating effect */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effects */
+    padding: 15px;
+}
+
+    /* Glow effect on hover */
+    .trainer-card:hover {
+        box-shadow: 0px 0px 15px 3px rgba(91, 225, 230, 0.8); /* Glowing effect */
+        transform: translateY(-5px); /* Slight lift effect when hovered */
+    }
+
+    /* Styling for card header */
+    .trainer-card .trainer-card-header {
+        background-color: #000000; /* Light gray background for the header */
+        border-bottom: 2px solid #ddd; /* Subtle border for separation */
+        padding: 10px;
+    }
+
+.trainer-card-header-text {
+    color: #5be1e6;
+}
+
+/* Styling for the table */
+.trainerlist-table {
+    width: 100%; /* Ensures the table fills the card body */
+    border-collapse: collapse; /* Makes the table border collapse into a single line */
+}
+
+    /* Styling for table rows and cells */
+    .trainerlist-table th, .trainerlist-table td {
+        padding: 10px;
+        border: 1px solid #ddd; /* Subtle border for each table cell */
+        text-align: left;
+    }
+
+    /* Zebra striping for table rows */
+    .trainerlist-table tr:nth-child(even) {
+        background-color: #f9f9f9; /* Light gray background for even rows */
+    }
+
+    /* Table hover effect */
+    .trainerlist-table tr:hover {
+        background-color: #f1f1f1; /* Slight hover effect for rows */
+    }
+
+/* Optional: Responsive adjustments */
+@media (max-width: 768px) {
+    .trainer-card {
+        margin-bottom: 15px; /* Space out the cards on smaller screens */
+    }
+}
+
+
+
+/* Make the NavBar logo fit properly: */
+.top-row-logo .container-fluid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.top-row-logo .logo {
+    width: 125px;
+    height: auto;
+    object-fit: contain;
+}
+
+
+
+
+
+/* --------------------------------------- */
+/* LOTS OF DUPLICATES AND MIXED UP CLASSES */
+/* ----------------------------------------*/
+
+
+
+
+/* Home Page: */
+/*body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+}*/
+
+/* Login Page: */
+/*body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.menuButton {
+    font-size: 25px;
+    padding: 5px 10px;
+    border: 1px solid #000;
+    cursor: pointer;
+}
+
+body {
+    background: #000000;
+}
+
+.card {
+    color: #5be1e6;
+    background: #000000;
+    border: 2px solid #5be1e6;
+    border-radius: 1rem;
+}
+
+h2 {
+    color: #ffffff;
+}
+
+h5 {
+    color: #ffffff;
+}
+
+.input {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 2px solid #5be1e6;
+    border-radius: 36px;
+    background-color: #000000;
+    color: #5be1e6;
+}*/
+
+/* Trainer List: */
+/*body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+    color: whitesmoke;
+}
+
+.card {
+    color: #5be1e6;
+    background: #000000;
+    border: 2px solid #5be1e6;
+    border-radius: 1rem;
+}
+
+.card-body {
+    color: whitesmoke;
+}
+
+.table {
+    color: whitesmoke;
+}
+
+h1 {
+    color: whitesmoke;
+}*/
+
+/* Trainer Appointment List: */
+/*body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+    color: whitesmoke;
+}
+
+.card {
+    color: #5be1e6;
+    background: #000000;
+    border: 2px solid #5be1e6;
+    border-radius: 1rem;
+}
+
+.card-body {
+    color: whitesmoke;
+}
+
+.table {
+    color: whitesmoke;
+}
+
+h1 {
+    color: whitesmoke;
+}*/
+
+/* General table styling */
+/*.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: Arial, sans-serif;
+    color: #fff;*/ /* White text for contrast on black background */
+/*}*/
+
+    /* Header row styling */
+    /*.schedule-table thead {
+        background-color: #000;*/ /* Black background for header */
+        /*color: #5be1e6;*/ /* Use the provided #5be1e6 for header text */
+    /*}
+
+    .schedule-table th {
+        padding: 12px 15px;
+        text-align: left;
+    }*/
+
+    /* Data row styling */
+    /*.schedule-table td {
+        padding: 12px 15px;
+        border: 1px solid #444;*/ /* Slightly lighter border for better contrast */
+        /*text-align: left;
+    }*/
+
+    /* Zebra striping for alternating rows */
+    /*.schedule-table tr:nth-child(even) {
+        background-color: #1a1a1a;*/ /* Dark gray background for even rows */
+    /*}*/
+
+    /* Highlighting near appointments */
+    /*.schedule-table .near-appt {
+        background-color: #5be1e6;*/ /* Light blue background for near appointments */
+        /*color: black;*/ /* Make text black for better visibility on light blue */
+        /*font-weight: bold;
+    }*/
+
+    /* Table hover effect */
+    /*.schedule-table tr:hover {
+        background-color: #333;*/ /* Darker hover effect */
+    /*}*/
+
+/* Responsive adjustments */
+/*@@media screen and (max-width: 768px) {
+    .schedule-table th, .schedule-table td {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+
+.trainer {
+    font-size: 48px;
+    padding: 20px;
+}*/
+
+/* Auth: */
+/*body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+    color: whitesmoke;
+}*/
+
+/* Main Layout: */
+/*.button {
+    display: flex;
+    overflow: hidden;
+    margin: 25px 25px 25px 0px;
+    padding: 12px 25px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 150ms linear;
+    text-align: center;
+    white-space: nowrap;
+    text-decoration: none !important;
+    text-transform: none;
+    text-transform: capitalize;
+    color: #fff;
+    border: 2px solid #5be1e6;
+    border-radius: 36px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 160px;*/
+    /* box-shadow: 2px 5px 10px #e4e4e4; */
+    /*width: 100%;
+    &:hover
+
+{
+    transition: all 150ms linear;
+    opacity: .85;
+}
+
+&:active {
+    transition: all 150ms linear;
+    opacity: .75;
+}
+
+&:focus {
+    outline: 1px dotted #959595;
+    outline-offset: -4px;
+}
+
+}
+
+.button.-dark {
+    color: #000000;
+    background: #5be1e6;
+}
+
+&:focus {
+    outline: 1px dotted white;
+    outline-offset: -4px;
+}
+
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin: 25px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+.menuButton {
+    font-size: 25px;
+    padding: 5px 10px;
+    border: 1px solid #000;
+    cursor: pointer;
+}*/
+
+/* Resend Email Confirmation: */
+/*body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+    color: whitesmoke;
+}*/
+
+/* Register: */
+/*body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+    color: whitesmoke;
+}*/
+
+/* Forgot Password: */
+/*body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+    color: whitesmoke;
+}*/
+
+/* Error Page: */
+/*body {
+    background: #000000;
+}
+
+.background {
+    background-image: url('https://decyple.com/gs-home-v2.jpg');
+    background-size: 100%;
+    height: 100vh;
+    color: white;
+}
+
+.top-row {
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+}
+
+* {
+    box-sizing: border-box;
+    color: whitesmoke;
+}*/
+
+
+    
