@@ -55,16 +55,44 @@ namespace GymSync {
 		private class QueryReflectionMethods {
 			#region Caches
 			private static class EnumerableReference<TSource> {
-				public static readonly MethodInfo DefaultIfEmpty = typeof(Enumerable).GetMethod("DefaultIfEmpty", [ typeof(IEnumerable<TSource>) ])!;
+				public static readonly MethodInfo DefaultIfEmpty;
+
+				static EnumerableReference() {
+					// Hack LINQ Expressions to get the method
+					// Type.GetMethod() will not suffice for generic methods, unfortunately
+					Expression<Func<IEnumerable<TSource>, IEnumerable<TSource?>>> defaultIfEmpty = source => source.DefaultIfEmpty();
+					DefaultIfEmpty = (defaultIfEmpty.Body as MethodCallExpression)?.Method
+						?? throw new InvalidOperationException("Could not find the DefaultIfEmpty method in the Enumerable class.");
+				}
 			}
 
 			private static class QueryableReference<TSource, TCollection, TResult> {
-				public static readonly MethodInfo SelectMany = typeof(Queryable).GetMethod("SelectMany", [ typeof(IQueryable<TSource>), typeof(Expression<Func<TSource, IEnumerable<TCollection>>>), typeof(Expression<Func<TSource, TCollection, TResult>>) ])!;
+				public static readonly MethodInfo SelectMany;
+
+				static QueryableReference() {
+					// Hack LINQ Expressions to get the method
+					// Type.GetMethod() will not suffice for generic methods, unfortunately
+					Expression<Func<IQueryable<TSource>, Expression<Func<TSource, IEnumerable<TCollection>>>, Expression<Func<TSource, TCollection, TResult>>, IEnumerable<TResult>>> selectMany = (source, collectionSelector, resultSelector) => source.SelectMany(collectionSelector, resultSelector);
+					SelectMany = (selectMany.Body as MethodCallExpression)?.Method
+						?? throw new InvalidOperationException("Could not find the SelectMany method in the Queryable class.");
+				}
 			}
 
 			private static class QueryableReference<TOuter, TInner, TKey, TResult> {
-				public static readonly MethodInfo GroupJoin = typeof(Queryable).GetMethod("GroupJoin", [ typeof(IQueryable<TOuter>), typeof(IEnumerable<TInner>), typeof(Expression<Func<TOuter, TKey>>), typeof(Expression<Func<TInner, TKey>>), typeof(Expression<Func<TOuter, IEnumerable<TInner>, TResult>>) ])!;
-				public static readonly MethodInfo Join = typeof(Queryable).GetMethod("Join", [ typeof(IQueryable<TOuter>), typeof(IEnumerable<TInner>), typeof(Expression<Func<TOuter, TKey>>), typeof(Expression<Func<TInner, TKey>>), typeof(Expression<Func<TOuter, TInner, TResult>>) ])!;
+				public static readonly MethodInfo GroupJoin;
+				public static readonly MethodInfo Join;
+
+				static QueryableReference() {
+					// Hack LINQ Expressions to get the methods
+					// Type.GetMethod() will not suffice for generic methods, unfortunately
+					Expression<Func<IQueryable<TOuter>, IEnumerable<TInner>, Expression<Func<TOuter, TKey>>, Expression<Func<TInner, TKey>>, Expression<Func<TOuter, IEnumerable<TInner>, TResult>>, IQueryable<TResult>>> groupJoin = (outer, inner, outerKeySelector, innerKeySelector, resultSelector) => outer.GroupJoin(inner, outerKeySelector, innerKeySelector, resultSelector);
+					GroupJoin = (groupJoin.Body as MethodCallExpression)?.Method
+						?? throw new InvalidOperationException("Could not find the GroupJoin method in the Queryable class.");
+
+					Expression<Func<IQueryable<TOuter>, IEnumerable<TInner>, Expression<Func<TOuter, TKey>>, Expression<Func<TInner, TKey>>, Expression<Func<TOuter, TInner, TResult>>, IQueryable<TResult>>> join = (outer, inner, outerKeySelector, innerKeySelector, resultSelector) => outer.Join(inner, outerKeySelector, innerKeySelector, resultSelector);
+					Join = (join.Body as MethodCallExpression)?.Method
+						?? throw new InvalidOperationException("Could not find the Join method in the Queryable class.");
+				}
 			}
 
 			private static class ExpressionCache<TOuter, TInner> {
