@@ -320,9 +320,9 @@ namespace GymSync {
 			// This method allows missing columns when joining the info from the JOB table since a staff member may not have a job
 
 			return await _context.STAFF
-				.ToCrossReferencePrimary(_context.STAFF_x_JOB)
 				// Resolve the job for each staff member.  If the job doesn't exist, the job info will be null
-				.MergeFromCrossReferenceForeignAllowNull(_context.JOB, (sj, j) => new { sj.staff_id, Job = j })
+				.MergeWithCrossReferencePrimaryAllowNull(_context.STAFF_x_JOB, (s, sj) => new { s.staff_id, STAFFxJOB = sj })
+				.AnonymousMergeWhereMatchesKeysAllowNull(_context.JOB, anon => anon.STAFFxJOB.job_id, (anon, j) => new { anon.staff_id, Job = j })
 				// Resolve the user for each staff member
 				.AnonymousMergeCrossReferenceForeign(_context.USER_x_STAFF, anon => anon.staff_id, (anon, us) => new { anon.staff_id, anon.Job, us.user_id })
 				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.staff_id, anon.Job, User = new UserView(u.user_id, u.firstName, u.lastName) })
