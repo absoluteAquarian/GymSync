@@ -68,7 +68,7 @@
 	{
 		_ready = false;
 		
-		Query _query = new Query(_dbContext);
+		_query = new Query(_dbContext);
 
 		if (await _query.TrainerToUser(trainer_id) is UserView user)
 			_currentUser = user;
