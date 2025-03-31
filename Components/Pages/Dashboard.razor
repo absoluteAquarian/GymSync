@@ -17,35 +17,35 @@
 }
 else{
 
-<div class="home-page-main">
-	<h1>Hello, @_userName, welcome to GymSync!</h1>
+	<div class="home-page-main">
+		<h1>Hello, @_userName, welcome to GymSync!</h1>
 
-	<p>This is the main page of the GymSync application</p>
+		<p>This is the main page of the GymSync application</p>
 
-	@if (_isTrainer)
-	{
-		<div class="trainer-section">
-			<p>Welcome to your GymSync Trainer Session.</p>
-			<p> <a href="trainer-appointment-list/@_trainerID">View Your Appointments</a></p>
-		</div>
-	}
+		@if (_isTrainer)
+		{
+			<div class="trainer-section">
+				<p>Welcome to your GymSync Trainer Session.</p>
+				<p> <a href="trainer-appointment-list/@_trainerID">View Your Appointments</a></p>
+			</div>
+		}
 
-	@if (_isStaff)
-	{
-		<div class="staff-section">
-			<p>This is the staff section.</p>
-			<p> <a href="equipment-availability">Click to View Equipment Status</a></p>
-		</div>
-	}
-	@if (_isClient)
-	{
-		<div class="client-section">
-			<p>This is the client section.</p>
-			<p><a href="client-appointment-list/@_clientID"> Link to Client Appointment List</a></p>
-		</div>
-	}
+		@if (_isStaff)
+		{
+			<div class="staff-section">
+				<p>This is the staff section.</p>
+				<p> <a href="equipment-availability">Click to View Equipment Status</a></p>
+			</div>
+		}
+		@if (_isClient)
+		{
+			<div class="client-section">
+				<p>This is the client section.</p>
+				<p><a href="client-appointment-list/@_clientID"> Link to Client Appointment List</a></p>
+			</div>
+		}
 
-</div>
+	</div>
 
 }
 
@@ -77,27 +77,46 @@ else{
 		{
 			_userID = (int)_UserSession.UserID;
 		}
-		
+
 		_query = new Query(_dbContext);
 
-		UserEntity? currentUser = await _query.UserToUser(_userID);
-		_userName = currentUser != null ? currentUser.firstName.ToUpper() + " " + currentUser.lastName.ToUpper() : "Unknown User";
+		var roles = await _query.GetUserRolesForUser(_userID);
+		if (roles is not null) {
+			// Information for the user exists
+			_userName = roles.User.FirstName.ToUpper() + " " + roles.User.LastName.ToUpper();
 
-		//check user id against trainer list and see if they exist
-		TrainerEntity? trainer = await _query.UserToTrainer(_userID);
-		_trainerID = trainer != null ? trainer.trainer_id : 0;
-		_isTrainer = trainer != null;
+			if (roles.Trainer is not null) {
+				_trainerID = roles.Trainer.trainer_id;
+				_isTrainer = true;
+			} else {
+				_trainerID = 0;
+				_isTrainer = false;
+			}
 
-		//check user against staff list
-		StaffEntity? staff = await _query.UserToStaff(_userID);
-		_staffID = staff != null ? staff.staff_id : 0;
-		_isStaff = staff != null;
+			if (roles.Staff is not null) {
+				_staffID = roles.Staff.staff_id;
+				_isStaff = true;
+			} else {
+				_staffID = 0;
+				_isStaff = false;
+			}
 
-		//check user against the client list
-		ClientEntity? client = await _query.UserToClient(_userID);
-		_clientID = client != null ? client.client_id : 0;
-		_isClient = client != null;
-
+			if (roles.Client is not null) {
+				_clientID = roles.Client.client_id;
+				_isClient = true;
+			} else {
+				_clientID = 0;
+				_isClient = false;
+			}
+		} else {
+			_userName = "Unknown User";
+			_trainerID = 0;
+			_isTrainer = false;
+			_staffID = 0;
+			_isStaff = false;
+			_clientID = 0;
+			_isClient = false;
+		}
 
 		_ready = true;
 	}
