@@ -5,8 +5,7 @@ using GymSync.Views;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace GymSync 
-{
+namespace GymSync {
 	public class Query(ApplicationDbContext context) {
 		private readonly ApplicationDbContext _context = context;
 
@@ -221,7 +220,6 @@ namespace GymSync
 				.AsUserView()
 				.ToListAsync();
 		}
-
 
 		public async Task<ClientEntity?> UserToClient(int userID) {
 			return await _context.USER
