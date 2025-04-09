@@ -7,12 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.SqlServer;
 
-namespace GymSync 
-{
-	public class Program 
-	{
-		public static void Main(string[] args) 
-		{
+namespace GymSync {
+	public class Program {
+		public static void Main(string[] args) {
 			var builder = WebApplication.CreateBuilder(args);
 
 			// Add services to the container.
