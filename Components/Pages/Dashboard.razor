@@ -90,36 +90,34 @@ else{
 			_userName = roles.User.FirstName.ToUpper() + " " + roles.User.LastName.ToUpper();
 			_isUser = true;
 
+			//check if user is has a trainer role assigned
 			if (roles.Trainer is not null) {
-				_trainerID = roles.Trainer.trainer_id;
-				_isTrainer = true;
-				_UserSession.TrainerID = _trainerID;
+				_UserSession.TrainerID = roles.Trainer.trainer_id;
+				_UserSession.IsTrainer = true;
 			} else {
-				_trainerID = 0;
-				_isTrainer = false;
-				_UserSession.TrainerID = _trainerID;
+				_UserSession.TrainerID = 0;
+				_UserSession.IsTrainer = false;
 			}
 
+			//check if user has a staff role assigned
 			if (roles.Staff is not null) {
-				_staffID = roles.Staff.staff_id;
-				_isStaff = true;
-				_UserSession.StaffID = _staffID;
+				_UserSession.StaffID = roles.Staff.staff_id;
+				_UserSession.IsStaff = true;
 			} else {
-				_staffID = 0;
-				_isStaff = false;
-				_UserSession.StaffID = _staffID;
+				_UserSession.StaffID = 0;
+				_UserSession.IsStaff = false;
 			}
 
+			//check if user has a client role assigned
 			if (roles.Client is not null) {
-				_clientID = roles.Client.client_id;
-				_isClient = true;
-				_UserSession.ClientID = _clientID;
+				_UserSession.ClientID = roles.Client.client_id;
+				_UserSession.IsClient = true;
 			} else {
-				_clientID = 0;
-				_isClient = false;
-				_UserSession.ClientID = _clientID;
+				_UserSession.ClientID = 0;
+				_UserSession.IsClient = false;
 			}
 		} else {
+			//user does not exist set all values to defaults for an unknown user
 			_userName = "Unknown User";
 			_isUser = false;
 			_trainerID = 0;
@@ -130,21 +128,23 @@ else{
 			_isClient = false;
 		}
 
-		if (_isTrainer)
+		//determine which home page the user should be sent to
+		//priorites are 1. trainer 2. staff 3. client 4. unknown user 5. non-user
+		if (_UserSession.IsTrainer)
 		{
-			_Navigation.NavigateTo($"/trainer-appointment-list/{_trainerID}");
+			_Navigation.NavigateTo($"/trainer-appointment-list/{_UserSession.TrainerID}");
 		}
 		else if (_isStaff)
 		{
-			_Navigation.NavigateTo($"/staff-job-list");
+			_Navigation.NavigateTo($"/staff-job-list/{_UserSession.StaffID}");
 		}
 		else if (_isClient)
 		{
-			_Navigation.NavigateTo($"/client-appointment-list/{_clientID}");
+			_Navigation.NavigateTo($"/client-appointment-list/{_UserSession.ClientID}");
 		}
 		else if (_isUser)
 		{
-			_Navigation.NavigateTo($"/unassigned-user/{_userID}");
+			_Navigation.NavigateTo($"/unassigned-user/{_UserSession.UserID}");
 		}
 
 		_ready = true;
