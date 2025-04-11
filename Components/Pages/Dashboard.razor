@@ -1,5 +1,6 @@
 ﻿@inject ApplicationDbContext _dbContext;
 @inject UserSessionService _UserSession;
+@inject NavigationManager _Navigation;
 
 @page "/dashboard"
 @using GymSync.Data
@@ -9,7 +10,7 @@
 @using GymSync.Services;
 @using Microsoft.EntityFrameworkCore;
 
-<PageTitle>GymSync Dashboard</PageTitle>
+<PageTitle>GymSync Dashboard Rerouter</PageTitle>
 
 @if(!_ready)
 {
@@ -63,10 +64,13 @@ else{
 	private int _staffID;
 	private int _clientID;
 
+	private bool _isUser = true;
 	private bool _isTrainer = true;
 	private bool _isStaff = true;
 	private bool _isClient = true;
 
+
+	private List<AppointmentEntity> _clientAppointmentList = [];
 	//variables for user information
 	private string _userName = "Unknown User";
 
@@ -84,32 +88,40 @@ else{
 		if (roles is not null) {
 			// Information for the user exists
 			_userName = roles.User.FirstName.ToUpper() + " " + roles.User.LastName.ToUpper();
+			_isUser = true;
 
 			if (roles.Trainer is not null) {
 				_trainerID = roles.Trainer.trainer_id;
 				_isTrainer = true;
+				_UserSession.TrainerID = _trainerID;
 			} else {
 				_trainerID = 0;
 				_isTrainer = false;
+				_UserSession.TrainerID = _trainerID;
 			}
 
 			if (roles.Staff is not null) {
 				_staffID = roles.Staff.staff_id;
 				_isStaff = true;
+				_UserSession.StaffID = _staffID;
 			} else {
 				_staffID = 0;
 				_isStaff = false;
+				_UserSession.StaffID = _staffID;
 			}
 
 			if (roles.Client is not null) {
 				_clientID = roles.Client.client_id;
 				_isClient = true;
+				_UserSession.ClientID = _clientID;
 			} else {
 				_clientID = 0;
 				_isClient = false;
+				_UserSession.ClientID = _clientID;
 			}
 		} else {
 			_userName = "Unknown User";
+			_isUser = false;
 			_trainerID = 0;
 			_isTrainer = false;
 			_staffID = 0;
@@ -118,11 +130,25 @@ else{
 			_isClient = false;
 		}
 
+		if (_isTrainer)
+		{
+			_Navigation.NavigateTo($"/trainer-appointment-list/{_trainerID}");
+		}
+		else if (_isStaff)
+		{
+			_Navigation.NavigateTo($"/staff-job-list");
+		}
+		else if (_isClient)
+		{
+			_Navigation.NavigateTo($"/client-appointment-list/{_clientID}");
+		}
+		else if (_isUser)
+		{
+			_Navigation.NavigateTo($"/unassigned-user/{_userID}");
+		}
+
 		_ready = true;
 	}
-
-	int count = 0;
-
-	private void Increment() { count++; }
+	
 
 }
