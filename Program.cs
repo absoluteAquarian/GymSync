@@ -1,6 +1,7 @@
 using GymSync.Components;
 using GymSync.Components.Account;
 using GymSync.Data;
+using GymSync.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,13 @@ namespace GymSync {
 			// Add services to the container.
 			builder.Services.AddRazorComponents()
 				.AddInteractiveServerComponents();
+			
+			builder.Services.AddSingleton<UserSessionService>();
+
+			builder.Services.AddHttpsRedirection(options => {
+				options.HttpsPort = 7172;
+			});
+
 
 			builder.Services.AddCascadingAuthenticationState();
 			builder.Services.AddScoped<IdentityUserAccessor>();
@@ -67,6 +75,7 @@ namespace GymSync {
 			}
 
 			app.UseHttpsRedirection();
+
 
 			app.UseStaticFiles();
 			app.UseAntiforgery();

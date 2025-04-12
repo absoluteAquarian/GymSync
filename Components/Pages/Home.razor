@@ -1,11 +1,46 @@
 ﻿@page "/"
+@inject ApplicationDbContext _dbContext;
+@inject UserSessionService _UserSession;
+@inject NavigationManager Navigation;
+@rendermode InteractiveServer
 
+@using GymSync.Data
+@using GymSync.Models
+@using GymSync.Views;
+@using GymSync.Components;
+@using GymSync.Services;
+@using Microsoft.EntityFrameworkCore;
 
+<PageTitle>GymSync Home Page</PageTitle>
+
+<input @bind="userIdInput" placeholder="Enter User Id" class="input-box"/>
+<button class="login-button" @onclick="LogIn"> LOGIN </button>
 <link href="Style.css" rel="stylesheet" />
 
+<p>@loginMessage</p>
 
-<PageTitle>GymSync Home</PageTitle>
 
+@code{
+	private string userIdInput = "";
+	private string loginMessage = "";
+
+	private void LogIn()
+	{
+		if (int.TryParse(userIdInput, out int userId) && userId > 0)
+		{
+			_UserSession.UserID = userId;
+			Navigation.NavigateTo("/dashboard");
+		}
+		else
+		{
+			loginMessage = "Invalid User ID, please enter a number";	
+		}
+
+		
+	}
+
+
+}
 <div style="background-image: url('https://decyple.com/gs-home-v2.jpg'); background-size: 100%; height: 100vh;">
     <AuthorizeView Roles="admin">
         <div class="alert alert-danger" role="alert">

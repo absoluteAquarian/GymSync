@@ -292,8 +292,6 @@ namespace GymSync {
 		#endregion
 
 		public async Task<List<StaticGroup<UserView, UserView>>> GetClientsForTrainerAll() {
-			// For data being propagated through the query, the extensions won't help
-
 			// TODO: Return empty client lists for trainers with no clients?
 			return await _context.TRAINER
 				.ToCrossReferenceForeign(_context.APPOINTMENT_x_TRAINER)
@@ -315,8 +313,6 @@ namespace GymSync {
 		}
 
 		public async Task<List<EquipmentView>> GetEquipmentAll() {
-			// For data being propagated through the query, the extensions won't help
-
 			return await _context.EQUIPMENT
 				// Resolve the equipment for each reference
 				.MergeWithCrossReferencePrimary(_context.EQUIPMENT_x_ITEM, (e, ei) => new { ei.item_id, e.equipment_id, e.location_name, e.in_use })
@@ -326,21 +322,41 @@ namespace GymSync {
 		}
 
 		public async Task<List<StaffJobView>> GetUserAndJobForStaffAll() {
-			// For data being propagated through the query, the extensions won't help
 			// This method allows missing columns when joining the info from the JOB table since a staff member may not have a job
 
 			return await _context.STAFF
-				.ToCrossReferencePrimary(_context.STAFF_x_JOB)
 				// Resolve the job for each staff member.  If the job doesn't exist, the job info will be null
-				.MergeFromCrossReferenceForeignAllowNull(_context.JOB, (sj, j) => new { sj.staff_id, Job = j })
+				.MergeWithCrossReferencePrimaryAllowNull(_context.STAFF_x_JOB, (s, sj) => new { s.staff_id, STAFFxJOB = sj })
+				.AnonymousMergeWhereMatchesKeysAllowNull(_context.JOB, anon => anon.STAFFxJOB.job_id, (anon, j) => new { anon.staff_id, Job = j })
 				// Resolve the user for each staff member
 				.AnonymousMergeCrossReferenceForeign(_context.USER_x_STAFF, anon => anon.staff_id, (anon, us) => new { anon.staff_id, anon.Job, us.user_id })
 				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.staff_id, anon.Job, User = new UserView(u.user_id, u.firstName, u.lastName) })
 				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
 				// The job columns have to be resolved client-side since expression trees don't support null-coalescing / null-propagation operators
 				.AsAsyncEnumerable()
-				.Select(i => new StaffJobView(i.staff_id, i.User.UserID, i.User.FirstName, i.User.LastName, i.Job?.job_name ?? "No job assigned", i.Job?.job_description ?? "", i.Job?.hourly_wage ?? 0))
+				.Select(anon => new StaffJobView(anon.staff_id, anon.User.UserID, anon.User.FirstName, anon.User.LastName, anon.Job?.job_name ?? "No job assigned", anon.Job?.job_description ?? "", anon.Job?.hourly_wage ?? 0))
 				.ToListAsync();
+		}
+
+		public async Task<UserRolesView?> GetUserRolesForUser(int userID) {
+			// This method allows missing columsn when joining the various cross reference tables, since a user may not have a given role
+
+			return await _context.USER
+				.Where(u => u.user_id == userID)
+				// Resolve the client role for the user.  If the user isn't a client, the client info will be null
+				.MergeWithCrossReferencePrimaryAllowNull(_context.USER_x_CLIENT, (u, uc) => new { USER = u, USERxCLIENT = uc })
+				.AnonymousMergeWhereMatchesKeysAllowNull(_context.CLIENT, anon => anon.USERxCLIENT.client_id, (anon, c) => new { anon.USER, CLIENT = c })
+				// Resolve the trainer role for the user.  If the user isn't a trainer, the trainer info will be null
+				.AnonymouseMergeCrossReferencePrimaryAllowNull(_context.USER_x_TRAINER, anon => anon.USER.user_id, (anon, ut) => new { anon.USER, anon.CLIENT, USERxTRAINER = ut })
+				.AnonymousMergeWhereMatchesKeysAllowNull(_context.TRAINER, anon => anon.USERxTRAINER.trainer_id, (anon, t) => new { anon.USER, anon.CLIENT, TRAINER = t })
+				// Resolve the staff role for the user.  If the user isn't a staff member, the staff info will be null
+				.AnonymouseMergeCrossReferencePrimaryAllowNull(_context.USER_x_STAFF, anon => anon.USER.user_id, (anon, us) => new { anon.USER, anon.CLIENT, anon.TRAINER, USERxSTAFF = us })
+				.AnonymousMergeWhereMatchesKeysAllowNull(_context.STAFF, anon => anon.USERxSTAFF.staff_id, (anon, s) => new { anon.USER, anon.CLIENT, anon.TRAINER, STAFF = s })
+				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
+				// The role columns have to be resolved client-side since expression trees don't support null-coalescing / null-propagation operators
+				.AsAsyncEnumerable()
+				.Select(anon => new UserRolesView(new UserView(anon.USER.user_id, anon.USER.firstName, anon.USER.lastName), anon.CLIENT, anon.TRAINER, anon.STAFF))
+				.FirstOrDefaultAsync();
 		}
 	}
 
