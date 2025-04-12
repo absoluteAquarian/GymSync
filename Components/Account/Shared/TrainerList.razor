@@ -1,0 +1,170 @@
+﻿@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@page "/trainerlist"
+
+@using GymSync.Data
+@using GymSync.Models
+@using GymSync.Querying
+@using GymSync.Views
+@using Microsoft.EntityFrameworkCore;
+
+
+<link href="Style.css" rel="stylesheet" />
+
+<style>
+	/* Loading Dots:                                        */
+	/* Source: https://10015.io/tools/css-loader-generator  */
+
+	.dots {
+		width: 88px;
+		height: 42.2px;
+		background: radial-gradient(circle closest-side,#5be1e6 90%,#0000) 0% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 50% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 100% 50%;
+		background-size: calc(100%/3) 21.1px;
+		background-repeat: no-repeat;
+		animation: dots-7ar3yq 1s infinite linear;
+	}
+
+	@@keyframes dots-7ar3yq {
+		20% {
+			background-position: 0% 0%, 50% 50%,100% 50%;
+		}
+
+		40% {
+			background-position: 0% 100%, 50% 0%,100% 50%;
+		}
+
+		60% {
+			background-position: 0% 50%, 50% 100%,100% 0%;
+		}
+
+		80% {
+			background-position: 0% 50%, 50% 50%,100% 100%;
+		}
+	}
+</style>
+
+
+<PageTitle>GymSync - Trainer List</PageTitle>
+
+
+<AuthorizeView Roles="admin">
+	<div class="alert alert-danger" role="alert">
+		Your are in Administrator mode!
+	</div>
+</AuthorizeView>
+
+<h1>List of Clients per Trainer</h1>
+<br />
+This page lists the clients for each trainer.
+<br />
+<br />
+
+<AuthorizeView Roles="admin">
+@if (!_ready)
+{
+	<p><br /><br /><div class="dots"></div><br /><br /></p>
+}
+else
+{
+	<div class="row">
+		@foreach (var trainer in _trainers)
+		{
+			@if (_trainerUserToClients.TryGetValue(trainer.UserID, out var clients) && clients.Count > 0)
+			{
+				<div class="col-md-4">
+					<div class="card mb-3 trainer-card">
+
+						<div class="trainer-card-header">
+							<h4 class="trainer-card-header-text">Trainer: @trainer.FirstName @trainer.LastName</h4>
+						</div>
+
+						<div class="card-body">
+							<table class="trainerlist-table">
+								<thead>
+									<tr>
+										<th>Client ID</th>
+										<th>Client Name</th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (var client in clients)
+									{
+										<tr>
+											<td>@client.UserID</td>
+											<td>@client.FirstName @client.LastName</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			}
+		}
+	</div>
+}
+</AuthorizeView>
+
+@code {
+	private Query? _query;
+	private bool _ready;
+
+	private List<UserView> _trainers = [];
+	private Dictionary<int, List<UserView>> _trainerUserToClients = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		// Get the authentication states:
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+		// Get the authentication state of current user:
+		var userState = authState.User;
+
+		// If the user is not an admin, redirect to the home page:
+		if (userState.IsInRole("admin"))
+		{
+			_ready = false;
+
+			_query = new Query(DbContext);
+
+			// Get all trainers with one query rather than individual queries for each trainer
+			_trainers = await _query.TrainerToUserAll();
+
+			// Since the previous query accessed USER_x_TRAINER, accessing it again (via TrainerToUser) here shouldn't incur a database hit in theory
+			// But even if it does, only one field is being accessed, so the performance impact should be minimal
+			foreach (var trainer in await DbContext.TRAINER.Select(t => t.trainer_id).ToListAsync())
+			{
+				var user = await _query.TrainerToUser(trainer);
+				if (user != null)
+					_trainerUserToClients[user.UserID] = await _query.GetClientsForTrainer(trainer);
+			}
+
+			_ready = true;
+		}
+		else
+		{
+			NavigationManager.NavigateTo("/");
+		}
+	}
+}
+
+
+@* @code {
+	private Query _query;
+	private bool _ready;
+
+	private List<StaticGroup<UserView, UserView>> _trainersWithClients = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+
+		_query = new Query(DbContext);
+
+		_trainersWithClients = await _query.GetClientsForTrainerAll();
+
+		_ready = true;
+	}
+} *@
