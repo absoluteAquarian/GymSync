@@ -9,6 +9,17 @@ namespace GymSync {
 	public class Query(ApplicationDbContext context) {
 		private readonly ApplicationDbContext _context = context;
 
+		public async Task<List<UserView>> GetClientsForTrainer(int trainerID) {
+			return await _context.APPOINTMENT_x_TRAINER
+				.Where(at => at.trainer_id == trainerID)
+				.TransformWhereKeysMatch(_context.APPOINTMENT_x_CLIENT)
+				.FromCrossReferenceForeign(_context.CLIENT)
+				.ToCrossReferenceForeign(_context.USER_x_CLIENT)
+				.FromCrossReferencePrimary(_context.USER)
+				.AsUserView()
+				.ToListAsync();
+		}
+
 		#region User Look-up
 		public async Task<UserEntity?> UserToUser(int userID) {
 			return await _context.USER
@@ -209,7 +220,6 @@ namespace GymSync {
 				.AsUserView()
 				.ToListAsync();
 		}
-				
 
 		public async Task<ClientEntity?> UserToClient(int userID) {
 			return await _context.USER

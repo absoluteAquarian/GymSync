@@ -1,24 +1,56 @@
 ﻿@inject ApplicationDbContext DbContext;
 
-<link rel="stylesheet" href="~/app.css" asp-append-version="true"/>
-
 @page "/equipment-availability"
+
 @using GymSync.Data;
 @using GymSync.Models;
 @using GymSync.Views;
 @using GymSync.Components;
 @using Microsoft.EntityFrameworkCore;
 
+
+<link href="Style.css" rel="stylesheet" />
+
+<style>
+	/* Loading Dots:                                        */
+	/* Source: https://10015.io/tools/css-loader-generator  */
+
+	.dots {
+		width: 88px;
+		height: 42.2px;
+		background: radial-gradient(circle closest-side,#5be1e6 90%,#0000) 0% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 50% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 100% 50%;
+		background-size: calc(100%/3) 21.1px;
+		background-repeat: no-repeat;
+		animation: dots-7ar3yq 1s infinite linear;
+	}
+
+	@@keyframes dots-7ar3yq {
+		20% {
+			background-position: 0% 0%, 50% 50%,100% 50%;
+		}
+
+		40% {
+			background-position: 0% 100%, 50% 0%,100% 50%;
+		}
+
+		60% {
+			background-position: 0% 50%, 50% 100%,100% 0%;
+		}
+
+		80% {
+			background-position: 0% 50%, 50% 50%,100% 100%;
+		}
+	}
+</style>
+
 <PageTitle>GymSync Equipment Availability</PageTitle>
-
-
 <h1>Equipment Availability</h1>
-
 This page has a list of all gym equipment and its current availability.
+
 
 @if (!_ready)
 {
-	<p><em>Loading...</em></p>
+	<p><br /><br /><div class="dots"></div><br /><br /></p>
 }
 else
 {
@@ -34,7 +66,7 @@ else
 		</thead>
 
 		<tbody>
-			@foreach(var gymEquipment in _gymEquipmentList)
+			@foreach (var gymEquipment in _gymEquipmentList)
 			{
 				<tr>
 					<td>@gymEquipment.EquipmentID</td>
@@ -46,12 +78,12 @@ else
 					}
 					else
 					{
-						<td class="td-notinuse">Open</td>	
+						<td class="td-notinuse">Open</td>
 					}
 
 
 				</tr>
-			}				
+			}
 		</tbody>
 
 	</table>

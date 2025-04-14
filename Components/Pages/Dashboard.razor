@@ -12,11 +12,12 @@
 
 <PageTitle>GymSync Dashboard Rerouter</PageTitle>
 
-@if(!_ready)
+@if (!_ready)
 {
 	<p>Awaiting server...</p>
 }
-else{
+else
+{
 
 	<p>Something went wrong, you should have been redirected</p>
 
@@ -57,7 +58,8 @@ else{
 		_query = new Query(_dbContext);
 
 		var roles = await _query.GetUserRolesForUser(_userID);
-		if (roles is not null) {
+		if (roles is not null)
+		{
 			// Information for the user exists
 			_userName = roles.User.FirstName.ToUpper() + " " + roles.User.LastName.ToUpper();
 			_isUser = true;
