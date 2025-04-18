@@ -289,6 +289,14 @@ namespace GymSync {
 				.FromCrossReferenceForeign(_context.TRAINER)
 				.ToListAsync();
 		}
+
+		//ASP user lookup
+		public async Task<UserView?> AspNetUserToUser(string Email) {
+			return await _context.USER
+				.Where(s => s.email == Email)
+				.AsUserView()
+				.FirstOrDefaultAsync();
+		}
 		#endregion
 
 		public async Task<List<StaticGroup<UserView, UserView>>> GetClientsForTrainerAll() {
@@ -297,12 +305,12 @@ namespace GymSync {
 				.ToCrossReferenceForeign(_context.APPOINTMENT_x_TRAINER)
 				// Resolve the trainer user for each appointment
 				.AnonymousMergeCrossReferenceForeign(_context.USER_x_TRAINER, at => at.trainer_id, (at, ut) => new { at.appointment_id, at.trainer_id, ut.user_id })
-				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.appointment_id, anon.trainer_id, TrainerUser = new UserView(u.user_id, u.firstName, u.lastName) })
+				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.appointment_id, anon.trainer_id, TrainerUser = new UserView(u.user_id, u.firstName, u.lastName, u.email) })
 				// Resolve the client user for each appointment
 				.AnonymousMergeCrossReferencePrimary(_context.APPOINTMENT_x_CLIENT, anon => anon.appointment_id, (anon, ac) => new { anon.trainer_id, anon.TrainerUser, ac.client_id })
 				.AnonymousWhereMatchesKeys(_context.CLIENT, anon => anon.client_id)
 				.AnonymousMergeWhereMatchesKeys(_context.USER_x_CLIENT, anon => anon.client_id, (anon, uc) => new { anon.trainer_id, anon.TrainerUser, uc.user_id })
-				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.trainer_id, anon.TrainerUser, ClientUser = new UserView(u.user_id, u.firstName, u.lastName) })
+				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.trainer_id, anon.TrainerUser, ClientUser = new UserView(u.user_id, u.firstName, u.lastName, u.email) })
 				// Group the clients by their trainer
 				.GroupBy(anon => anon.trainer_id, anon => new { anon.TrainerUser, anon.ClientUser })
 				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
@@ -330,7 +338,7 @@ namespace GymSync {
 				.AnonymousMergeWhereMatchesKeysAllowNull(_context.JOB, anon => anon.STAFFxJOB.job_id, (anon, j) => new { anon.staff_id, Job = j })
 				// Resolve the user for each staff member
 				.AnonymousMergeCrossReferenceForeign(_context.USER_x_STAFF, anon => anon.staff_id, (anon, us) => new { anon.staff_id, anon.Job, us.user_id })
-				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.staff_id, anon.Job, User = new UserView(u.user_id, u.firstName, u.lastName) })
+				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.staff_id, anon.Job, User = new UserView(u.user_id, u.firstName, u.lastName, u.email) })
 				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
 				// The job columns have to be resolved client-side since expression trees don't support null-coalescing / null-propagation operators
 				.AsAsyncEnumerable()
@@ -355,7 +363,7 @@ namespace GymSync {
 				// Convert from server-sided evaluation (SQL) to client-sided evaluation (C#)
 				// The role columns have to be resolved client-side since expression trees don't support null-coalescing / null-propagation operators
 				.AsAsyncEnumerable()
-				.Select(anon => new UserRolesView(new UserView(anon.USER.user_id, anon.USER.firstName, anon.USER.lastName), anon.CLIENT, anon.TRAINER, anon.STAFF))
+				.Select(anon => new UserRolesView(new UserView(anon.USER.user_id, anon.USER.firstName, anon.USER.lastName, anon.USER.email), anon.CLIENT, anon.TRAINER, anon.STAFF))
 				.FirstOrDefaultAsync();
 		}
 	}
@@ -397,7 +405,7 @@ namespace GymSync {
 		}
 
 		public static IQueryable<UserView> AsUserView(this IQueryable<UserEntity> query) {
-			return query.Select(u => new UserView(u.user_id, u.firstName, u.lastName));
+			return query.Select(u => new UserView(u.user_id, u.firstName, u.lastName, u.email));
 		}
 
 		public static IQueryable<TTo> FromCrossReferencePrimary<TCross, TTo>(this IQueryable<TCross> query, IQueryable<TTo> to)

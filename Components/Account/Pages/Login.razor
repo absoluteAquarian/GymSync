@@ -6,12 +6,17 @@
 @using Microsoft.AspNetCore.Identity
 @using GymSync.Data
 @using GymSync.Components.Layout
+@using GymSync.Services
+@using GymSync.Models;
+@using GymSync.Views;
 
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext _dbContext;
+@inject UserSessionService _userSession;
 
 @layout MainLayout
 
@@ -38,7 +43,7 @@
                     <div class="row g-0">
                         <div class="col-md-6 col-lg-5 d-none d-md-block">
                             <img src="https://decyple.com/gs-login-i1a.jpg"
-                                 alt="login form" class="img-fluid" style="border-radius: 1rem 0 0 1rem;" />
+                            alt="login form" class="img-fluid" style="border-radius: 1rem 0 0 1rem;" />
                         </div>
                         <div class="col-md-6 col-lg-7 d-flex align-items-center">
                             <div class="card-body p-4 p-lg-5 text-black">
@@ -46,7 +51,7 @@
                                 <div class="d-flex align-items-center mb-3 pb-1" style="color: #ffffff;">
                                     <i class="fas fa-cubes fa-2x me-3" style="color: #ff6219;"></i>
                                     <img src="https://decyple.com/gs-logo-login.jpg"
-                                         alt="GymSync Logo" class="img-fluid" style="border-radius: 1rem 0 0 1rem;" />
+                                    alt="GymSync Logo" class="img-fluid" style="border-radius: 1rem 0 0 1rem;" />
                                 </div>
 
 
@@ -127,8 +132,14 @@
         var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
         if (result.Succeeded)
         {
+            //look up the user to get it in the user session
+            Query _query = new Query(_dbContext);
+            UserView user = await _query.AspNetUserToUser(Input.Email);
+
+            _userSession.UserID = user.UserID;
+
             Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
+            NavigationManager.NavigateTo($"/dashboard/{ user.UserID}");
         }
         else if (result.RequiresTwoFactor)
         {
