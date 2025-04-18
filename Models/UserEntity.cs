@@ -13,8 +13,8 @@ namespace GymSync.Models
         public string firstName { get; set; }
         [DisplayName("Last Name")]
         public string lastName { get; set; }
-        public string userPassword { get; set; }
-        public string email { get; set; }
+		[DisplayName("Asp User Id")]
+		public string email { get; set; }
 
         static Expression<Func<UserEntity, int>> IQueryKeyable<UserEntity, int>.GetPrimaryKey() {
             return u => u.user_id;
