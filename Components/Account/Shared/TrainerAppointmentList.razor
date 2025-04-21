@@ -1,6 +1,7 @@
 ﻿@inject ApplicationDbContext DbContext;
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserSessionService _userSession;
 
 @page "/trainer-appointment-list/{trainer_id:int}";
 
@@ -9,6 +10,7 @@
 @using GymSync.Models;
 @using GymSync.Views;
 @using Microsoft.EntityFrameworkCore;
+@using GymSync.Services;
 
 
 <link href="Style.css" rel="stylesheet" />
@@ -60,64 +62,63 @@ This page is for listing all of an individual trainer's upcoming appointments'
 <br />
 <br />
 
-<AuthorizeView Roles="admin">
 
-	<body>
-		<p></p>
+<body>
+	<p></p>
 
-		@if (!_ready)
+	@if (!_ready)
+	{
+		<p><br /><br /><div class="dots"></div><br /><br /></p>
+	}
+	else
+	{
+		@if (@_currentUser != null)
 		{
-			<p><br /><br /><div class="dots"></div><br /><br /></p>
+			<p class="trainer"> @_currentUser.FirstName @_currentUser.LastName <br /></p>
+			<table class="schedule-table">
+				<thead>
+					<tr>
+						<th>Appt Id</th>
+						<th>Start Time</th>
+						<th>End Time</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (_appointmentList.Any())
+					{
+						@foreach (var appt in _appointmentList)
+						{
+							@if ((appt.start_time - DateTime.Now).TotalDays < 2)
+							{
+								<tr class="near-appt">
+									<td>@appt.appointment_id</td>
+									<td>@appt.start_time</td>
+									<td>@appt.end_time</td>
+								</tr>
+							}
+							else
+							{
+								<tr>
+									<td>@appt.appointment_id</td>
+									<td>@appt.start_time</td>
+									<td>@appt.end_time</td>
+								</tr>
+							}
+						}
+					}
+				</tbody>
+			</table>
 		}
 		else
 		{
-			@if (@_currentUser != null)
-			{
-				<p class="trainer"> @_currentUser.FirstName @_currentUser.LastName <br /></p>
-				<table class="schedule-table">
-					<thead>
-						<tr>
-							<th>Appt Id</th>
-							<th>Start Time</th>
-							<th>End Time</th>
-						</tr>
-					</thead>
-					<tbody>
-						@if (_appointmentList.Any())
-						{
-							@foreach (var appt in _appointmentList)
-							{
-								@if ((appt.start_time - DateTime.Now).TotalDays < 2)
-								{
-									<tr class="near-appt">
-										<td>@appt.appointment_id</td>
-										<td>@appt.start_time</td>
-										<td>@appt.end_time</td>
-									</tr>
-								}
-								else
-								{
-									<tr>
-										<td>@appt.appointment_id</td>
-										<td>@appt.start_time</td>
-										<td>@appt.end_time</td>
-									</tr>
-								}
-							}
-						}
-					</tbody>
-				</table>
-			}
-			else
-			{
-				<div style="width: 33%" class="alert alert-danger" role="alert">
-					Trainer does not exist!
-				</div>
-			}
+			<div style="width: 33%" class="alert alert-danger" role="alert">
+				Trainer does not exist!
+			</div>
 		}
-	</body>
+	}
+</body>
 
-</AuthorizeView>
+
 
 @code {
 	private Query _query;
@@ -126,7 +127,7 @@ This page is for listing all of an individual trainer's upcoming appointments'
 	[Parameter]
 	public int trainer_id { get; set; }
 
-	private UserView _currentUser = new UserView(0, "first", "last");
+	private UserView _currentUser = new UserView(0, "first", "last", "email");
 	private List<AppointmentEntity> _appointmentList = new List<AppointmentEntity>();
 
 	protected override async Task OnInitializedAsync()
@@ -138,21 +139,16 @@ This page is for listing all of an individual trainer's upcoming appointments'
 		var userState = authState.User;
 
 		// If the user is not an admin, redirect to the home page:
-		if (userState.IsInRole("admin"))
+		if (_userSession.IsTrainer)
 		{
 			_ready = false;
 
 			Query _query = new Query(DbContext);
 
-			_currentUser = await _query.TrainerToUser(trainer_id);
+			if (await _query.TrainerToUser(trainer_id) is UserView user)
+				_currentUser = user;
 
-			foreach (var appt in await _query.TrainerToAppointmentAll(trainer_id))
-			{
-				_appointmentList.Add(appt);
-			}
-
-			_appointmentList = _appointmentList.OrderBy(appt => appt.start_time).ToList();
-
+			_appointmentList = (await _query.TrainerToAppointmentAll(trainer_id)).OrderBy(a => a.start_time).ToList();
 
 			_ready = true;
 		}

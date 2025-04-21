@@ -1,6 +1,6 @@
 ﻿@inject ApplicationDbContext DbContext;
 
-@page "/staff-job-list";
+@page "/staff-job-list/{staff_id:int}";
 @using GymSync.Data;
 @using GymSync.Models;
 @using GymSync.Views;
@@ -54,6 +54,9 @@ else
 	//set the required variables for each time the page is loaded.
 	private Query _query;
 	private bool _ready;
+
+	[Parameter]
+	public int staff_id { get; set; }
 
 	//List of StaffJobView classes for page info
 	private List<StaffJobView> StaffJobsList = [];

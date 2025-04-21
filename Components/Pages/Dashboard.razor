@@ -1,7 +1,8 @@
 ﻿@inject ApplicationDbContext _dbContext;
 @inject UserSessionService _UserSession;
+@inject NavigationManager _Navigation;
 
-@page "/dashboard"
+@page "/dashboard/{user_id:int}"
 @using GymSync.Data
 @using GymSync.Models
 @using GymSync.Views;
@@ -9,7 +10,7 @@
 @using GymSync.Services;
 @using Microsoft.EntityFrameworkCore;
 
-<PageTitle>GymSync Dashboard</PageTitle>
+<PageTitle>GymSync Dashboard Rerouter</PageTitle>
 
 @if (!_ready)
 {
@@ -18,41 +19,15 @@
 else
 {
 
-	<div class="home-page-main">
-		<h1>Hello, @_userName, welcome to GymSync!</h1>
-
-		<p>This is the main page of the GymSync application</p>
-
-		@if (_isTrainer)
-		{
-			<div class="trainer-section">
-				<p>Welcome to your GymSync Trainer Session.</p>
-				<p> <a href="trainer-appointment-list/@_trainerID">View Your Appointments</a></p>
-			</div>
-		}
-
-		@if (_isStaff)
-		{
-			<div class="staff-section">
-				<p>This is the staff section.</p>
-				<p> <a href="equipment-availability">Click to View Equipment Status</a></p>
-			</div>
-		}
-		@if (_isClient)
-		{
-			<div class="client-section">
-				<p>This is the client section.</p>
-				<p><a href="client-appointment-list/@_clientID"> Link to Client Appointment List</a></p>
-			</div>
-		}
-
-	</div>
+	<p>Something went wrong, you should have been redirected</p>
 
 }
 
 
 
 @code {
+	[Parameter]
+	public int user_id { get; set; }
 
 	Query _query;
 	private bool _ready;
@@ -64,10 +39,13 @@ else
 	private int _staffID;
 	private int _clientID;
 
+	private bool _isUser = true;
 	private bool _isTrainer = true;
 	private bool _isStaff = true;
 	private bool _isClient = true;
 
+
+	private List<AppointmentEntity> _clientAppointmentList = [];
 	//variables for user information
 	private string _userName = "Unknown User";
 
@@ -86,43 +64,38 @@ else
 		{
 			// Information for the user exists
 			_userName = roles.User.FirstName.ToUpper() + " " + roles.User.LastName.ToUpper();
+			_isUser = true;
 
-			if (roles.Trainer is not null)
-			{
-				_trainerID = roles.Trainer.trainer_id;
-				_isTrainer = true;
-			}
-			else
-			{
-				_trainerID = 0;
-				_isTrainer = false;
-			}
-
-			if (roles.Staff is not null)
-			{
-				_staffID = roles.Staff.staff_id;
-				_isStaff = true;
-			}
-			else
-			{
-				_staffID = 0;
-				_isStaff = false;
+			//check if user is has a trainer role assigned
+			if (roles.Trainer is not null) {
+				_UserSession.TrainerID = roles.Trainer.trainer_id;
+				_UserSession.IsTrainer = true;
+			} else {
+				_UserSession.TrainerID = 0;
+				_UserSession.IsTrainer = false;
 			}
 
-			if (roles.Client is not null)
-			{
-				_clientID = roles.Client.client_id;
-				_isClient = true;
+			//check if user has a staff role assigned
+			if (roles.Staff is not null) {
+				_UserSession.StaffID = roles.Staff.staff_id;
+				_UserSession.IsStaff = true;
+			} else {
+				_UserSession.StaffID = 0;
+				_UserSession.IsStaff = false;
 			}
-			else
-			{
-				_clientID = 0;
-				_isClient = false;
+
+			//check if user has a client role assigned
+			if (roles.Client is not null) {
+				_UserSession.ClientID = roles.Client.client_id;
+				_UserSession.IsClient = true;
+			} else {
+				_UserSession.ClientID = 0;
+				_UserSession.IsClient = false;
 			}
-		}
-		else
-		{
+		} else {
+			//user does not exist set all values to defaults for an unknown user
 			_userName = "Unknown User";
+			_isUser = false;
 			_trainerID = 0;
 			_isTrainer = false;
 			_staffID = 0;
@@ -131,11 +104,27 @@ else
 			_isClient = false;
 		}
 
+		//determine which home page the user should be sent to
+		//priorites are 1. trainer 2. staff 3. client 4. unknown user 5. non-user
+		if (_UserSession.IsTrainer)
+		{
+			_Navigation.NavigateTo($"/trainer-appointment-list/{_UserSession.TrainerID}");
+		}
+		else if (_UserSession.IsStaff)
+		{
+			_Navigation.NavigateTo($"/staff-job-list/{_UserSession.StaffID}");
+		}
+		else if (_UserSession.IsClient)
+		{
+			_Navigation.NavigateTo($"/client-appointment-list/{_UserSession.ClientID}");
+		}
+		else if (_UserSession.IsUser)
+		{
+			_Navigation.NavigateTo($"/unassigned-user/{_UserSession.UserID}");
+		}
+
 		_ready = true;
 	}
-
-	int count = 0;
-
-	private void Increment() { count++; }
+	
 
 }
