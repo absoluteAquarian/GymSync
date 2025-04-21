@@ -18,30 +18,30 @@
 	/* Source: https://10015.io/tools/css-loader-generator  */
 
 	.dots {
-		width: 88px;
-		height: 42.2px;
-		background: radial-gradient(circle closest-side,#5be1e6 90%,#0000) 0% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 50% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 100% 50%;
-		background-size: calc(100%/3) 21.1px;
-		background-repeat: no-repeat;
-		animation: dots-7ar3yq 1s infinite linear;
+	width: 88px;
+	height: 42.2px;
+	background: radial-gradient(circle closest-side,#5be1e6 90%,#0000) 0% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 50% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 100% 50%;
+	background-size: calc(100%/3) 21.1px;
+	background-repeat: no-repeat;
+	animation: dots-7ar3yq 1s infinite linear;
 	}
 
 	@@keyframes dots-7ar3yq {
-		20% {
-			background-position: 0% 0%, 50% 50%,100% 50%;
-		}
+	20% {
+	background-position: 0% 0%, 50% 50%,100% 50%;
+	}
 
-		40% {
-			background-position: 0% 100%, 50% 0%,100% 50%;
-		}
+	40% {
+	background-position: 0% 100%, 50% 0%,100% 50%;
+	}
 
-		60% {
-			background-position: 0% 50%, 50% 100%,100% 0%;
-		}
+	60% {
+	background-position: 0% 50%, 50% 100%,100% 0%;
+	}
 
-		80% {
-			background-position: 0% 50%, 50% 50%,100% 100%;
-		}
+	80% {
+	background-position: 0% 50%, 50% 50%,100% 100%;
+	}
 	}
 </style>
 
@@ -55,6 +55,8 @@
 	</div>
 </AuthorizeView>
 
+<p><strong>Query execution time: @executionTime milliseconds</strong></p>
+
 <h1>List of Clients per Trainer</h1>
 <br />
 This page lists the clients for each trainer.
@@ -62,60 +64,64 @@ This page lists the clients for each trainer.
 <br />
 
 <AuthorizeView Roles="admin">
-@if (!_ready)
-{
-	<p><br /><br /><div class="dots"></div><br /><br /></p>
-}
-else
-{
-	<div class="row">
-		@foreach (var trainer in _trainers)
-		{
-			@if (_trainerUserToClients.TryGetValue(trainer.UserID, out var clients) && clients.Count > 0)
+	@if (!_ready)
+	{
+		<p><br /><br /><div class="dots"></div><br /><br /></p>
+	}
+	else
+	{
+		<div class="row">
+			@foreach (var trainer in _trainers)
 			{
-				<div class="col-md-4">
-					<div class="card mb-3 trainer-card">
+				@if (_trainerUserToClients.TryGetValue(trainer.UserID, out var clients) && clients.Count > 0)
+				{
+					<div class="col-md-4">
+						<div class="card mb-3 trainer-card">
 
-						<div class="trainer-card-header">
-							<h4 class="trainer-card-header-text">Trainer: @trainer.FirstName @trainer.LastName</h4>
-						</div>
+							<div class="trainer-card-header">
+								<h4 class="trainer-card-header-text">Trainer: @trainer.FirstName @trainer.LastName</h4>
+							</div>
 
-						<div class="card-body">
-							<table class="trainerlist-table">
-								<thead>
-									<tr>
-										<th>Client ID</th>
-										<th>Client Name</th>
-									</tr>
-								</thead>
-								<tbody>
-									@foreach (var client in clients)
-									{
+							<div class="card-body">
+								<table class="trainerlist-table">
+									<thead>
 										<tr>
-											<td>@client.UserID</td>
-											<td>@client.FirstName @client.LastName</td>
+											<th>Client ID</th>
+											<th>Client Name</th>
 										</tr>
-									}
-								</tbody>
-							</table>
+									</thead>
+									<tbody>
+										@foreach (var client in clients)
+										{
+											<tr>
+												<td>@client.UserID</td>
+												<td>@client.FirstName @client.LastName</td>
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
 						</div>
 					</div>
-				</div>
+				}
 			}
-		}
-	</div>
-}
+		</div>
+	}
 </AuthorizeView>
 
 @code {
 	private Query? _query;
 	private bool _ready;
+	private long executionTime;
 
 	private List<UserView> _trainers = [];
 	private Dictionary<int, List<UserView>> _trainerUserToClients = [];
 
 	protected override async Task OnInitializedAsync()
 	{
+		// Initialize the Stopwatch
+		System.Diagnostics.Stopwatch stopwatch = null;
+
 		// Get the authentication states:
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
@@ -129,6 +135,9 @@ else
 
 			_query = new Query(DbContext);
 
+			// start the Stopwatch
+			stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
 			// Get all trainers with one query rather than individual queries for each trainer
 			_trainers = await _query.TrainerToUserAll();
 
@@ -141,12 +150,19 @@ else
 					_trainerUserToClients[user.UserID] = await _query.GetClientsForTrainer(trainer);
 			}
 
+			// Stop the Stopwatch once the query is complete
+			stopwatch.Stop();
+
 			_ready = true;
 		}
 		else
 		{
 			NavigationManager.NavigateTo("/");
 		}
+
+		// Get the elapsed time in milliseconds
+		//executionTime = stopwatch.ElapsedMilliseconds;
+		executionTime = stopwatch.ElapsedMilliseconds;
 	}
 }
 
