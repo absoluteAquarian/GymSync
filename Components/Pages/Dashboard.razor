@@ -2,7 +2,7 @@
 @inject UserSessionService _UserSession;
 @inject NavigationManager _Navigation;
 
-@page "/dashboard"
+@page "/dashboard/{user_id:int}"
 @using GymSync.Data
 @using GymSync.Models
 @using GymSync.Views;
@@ -26,6 +26,8 @@ else
 
 
 @code {
+	[Parameter]
+	public int user_id { get; set; }
 
 	Query _query;
 	private bool _ready;
@@ -108,15 +110,15 @@ else
 		{
 			_Navigation.NavigateTo($"/trainer-appointment-list/{_UserSession.TrainerID}");
 		}
-		else if (_isStaff)
+		else if (_UserSession.IsStaff)
 		{
 			_Navigation.NavigateTo($"/staff-job-list/{_UserSession.StaffID}");
 		}
-		else if (_isClient)
+		else if (_UserSession.IsClient)
 		{
 			_Navigation.NavigateTo($"/client-appointment-list/{_UserSession.ClientID}");
 		}
-		else if (_isUser)
+		else if (_UserSession.IsUser)
 		{
 			_Navigation.NavigateTo($"/unassigned-user/{_UserSession.UserID}");
 		}
