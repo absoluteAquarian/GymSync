@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using GymSync.Data
+@using GymSync.Models;
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
@@ -14,6 +15,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext _dbContext;
 
 
 <link href="Style.css" rel="stylesheet" />
@@ -31,20 +33,28 @@
             <h2>Create a new account.</h2>
             <hr />
             <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="email">Email</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="email">Email: </label>
+                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />                
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
             </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+            <div style="display:flex; align-items: center; gap:10px;">
                 <label for="password">Password</label>
+                <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />                
                 <ValidationMessage For="() => Input.Password" class="text-danger" />
             </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+            <div style="display: flex; align-items:center; gap:10px;">
                 <label for="confirm-password">Confirm Password</label>
+                <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />                
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+            </div>
+            <div style="display: flex; align-items: center; gap:10px;">
+                <label for="first-name">First Name</label>
+                <InputText @bind-Value="Input.FirstName" class="form-control" autocomplete="first-name" aria-required="true" placeholder="first name" />                
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <label for="last-name">Last Name</label>
+                <InputText @bind-Value="Input.LastName" class="form-control" autocomplete="last-name" aria-required="true" placeholder="last name" />                
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </EditForm>
@@ -85,6 +95,9 @@
         }
 
         Logger.LogInformation("User created a new account with password.");
+
+        //Here we should be able to add the user to the USER table in the database
+        await HandleAddUser();
 
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
@@ -128,6 +141,19 @@
         return (IUserEmailStore<ApplicationUser>)UserStore;
     }
 
+    private async Task HandleAddUser()
+    {
+        //this method will add the user to the USER table of the database
+        var newUserEntity = new UserEntity();
+        newUserEntity.firstName = Input.FirstName;
+        newUserEntity.lastName = Input.LastName;
+        newUserEntity.email = Input.Email;
+
+        _dbContext.USER.Add(newUserEntity);
+        await _dbContext.SaveChangesAsync();        
+    
+    }
+
     private sealed class InputModel
     {
         [Required]
@@ -141,9 +167,19 @@
         [Display(Name = "Password")]
         public string Password { get; set; } = "";
 
+        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        [Required]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; } = "";
+
+        [Required]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; } = "";
+
     }
 }
