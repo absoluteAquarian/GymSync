@@ -20,30 +20,30 @@
 	/* Source: https://10015.io/tools/css-loader-generator  */
 
 	.dots {
-		width: 88px;
-		height: 42.2px;
-		background: radial-gradient(circle closest-side,#5be1e6 90%,#0000) 0% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 50% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 100% 50%;
-		background-size: calc(100%/3) 21.1px;
-		background-repeat: no-repeat;
-		animation: dots-7ar3yq 1s infinite linear;
+	width: 88px;
+	height: 42.2px;
+	background: radial-gradient(circle closest-side,#5be1e6 90%,#0000) 0% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 50% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 100% 50%;
+	background-size: calc(100%/3) 21.1px;
+	background-repeat: no-repeat;
+	animation: dots-7ar3yq 1s infinite linear;
 	}
 
 	@@keyframes dots-7ar3yq {
-		20% {
-			background-position: 0% 0%, 50% 50%,100% 50%;
-		}
+	20% {
+	background-position: 0% 0%, 50% 50%,100% 50%;
+	}
 
-		40% {
-			background-position: 0% 100%, 50% 0%,100% 50%;
-		}
+	40% {
+	background-position: 0% 100%, 50% 0%,100% 50%;
+	}
 
-		60% {
-			background-position: 0% 50%, 50% 100%,100% 0%;
-		}
+	60% {
+	background-position: 0% 50%, 50% 100%,100% 0%;
+	}
 
-		80% {
-			background-position: 0% 50%, 50% 50%,100% 100%;
-		}
+	80% {
+	background-position: 0% 50%, 50% 50%,100% 100%;
+	}
 	}
 </style>
 
@@ -78,7 +78,7 @@ This page is for listing all of an individual trainer's upcoming appointments'
 			<table class="schedule-table">
 				<thead>
 					<tr>
-						<th>Appt Id</th>
+						<th>Client Name</th>
 						<th>Start Time</th>
 						<th>End Time</th>
 					</tr>
@@ -91,7 +91,7 @@ This page is for listing all of an individual trainer's upcoming appointments'
 							@if ((appt.start_time - DateTime.Now).TotalDays < 2)
 							{
 								<tr class="near-appt">
-									<td>@appt.appointment_id</td>
+									<td>@appt.clientName</td>
 									<td>@appt.start_time</td>
 									<td>@appt.end_time</td>
 								</tr>
@@ -99,7 +99,7 @@ This page is for listing all of an individual trainer's upcoming appointments'
 							else
 							{
 								<tr>
-									<td>@appt.appointment_id</td>
+									<td>@appt.clientName</td>
 									<td>@appt.start_time</td>
 									<td>@appt.end_time</td>
 								</tr>
@@ -128,7 +128,8 @@ This page is for listing all of an individual trainer's upcoming appointments'
 	public int trainer_id { get; set; }
 
 	private UserView _currentUser = new UserView(0, "first", "last", "email");
-	private List<AppointmentEntity> _appointmentList = new List<AppointmentEntity>();
+	private List<AppointmentEntity> _trainerAppointmentList = new List<AppointmentEntity>();
+	private List<AppointmentView> _appointmentList = new List<AppointmentView>();
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -147,8 +148,35 @@ This page is for listing all of an individual trainer's upcoming appointments'
 
 			if (await _query.TrainerToUser(trainer_id) is UserView user)
 				_currentUser = user;
+			_trainerAppointmentList = (await _query.TrainerToAppointmentAll(trainer_id)).OrderBy(a => a.start_time).ToList();
+			//get the name of the client for each appointment and set them to the appointment list
+			foreach (var appt in _trainerAppointmentList)
+			{
+				ClientEntity client = await _query.AppointmentToClient(appt.appointment_id);
+				if (client != null)
+				{
+					UserView clientUser = await _query.ClientToUser(client.client_id);
+					if (clientUser != null)
+					{
+						AppointmentView appointmentView = new AppointmentView(clientUser.FirstName + " " + clientUser.LastName, appt.start_time, appt.end_time);
+						_appointmentList.Add(appointmentView);
+					}
+					else
+					{
+						AppointmentView appointmentView = new AppointmentView("Client number not assigned", appt.start_time, appt.end_time);
+						_appointmentList.Add(appointmentView);
+					}
+				}
+				else
+				{
+					AppointmentView appointmentView = new AppointmentView("No client assigned to appointment", appt.start_time, appt.end_time);
+					_appointmentList.Add(appointmentView);
+				}
 
-			_appointmentList = (await _query.TrainerToAppointmentAll(trainer_id)).OrderBy(a => a.start_time).ToList();
+				
+				
+
+			}
 
 			_ready = true;
 		}
