@@ -74,7 +74,33 @@ This page is for listing all of an individual trainer's upcoming appointments'
 	{
 		@if (@_currentUser != null)
 		{
-			<p class="trainer"> @_currentUser.FirstName @_currentUser.LastName <br /></p>
+			<h2>Welcome, @_currentUser.FirstName @_currentUser.LastName <br /></h2>
+
+			<h3>Assigned Clients</h3>
+
+			<table class="schedule-table">
+				<thead>
+					<tr>
+						<th>Client Name</th>
+						<th>Client Email</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (_clientUserList.Any())
+					{
+						@foreach (var client in _clientUserList)
+						{
+							<tr>
+								<td>@client.FirstName @client.LastName</td>
+								<td><a href="mailto:@client.email">Email</a></td>
+							</tr>
+						}
+					}
+				</tbody>
+			</table>
+
+			<h3>Upcoming Appointments</h3>
+
 			<table class="schedule-table">
 				<thead>
 					<tr>
@@ -128,8 +154,11 @@ This page is for listing all of an individual trainer's upcoming appointments'
 	public int trainer_id { get; set; }
 
 	private UserView _currentUser = new UserView(0, "first", "last", "email");
-	private List<AppointmentEntity> _trainerAppointmentList = new List<AppointmentEntity>();
+
+	private List<ClientEntity> _clientList = new List<ClientEntity>();
+	private List<UserView> _clientUserList = new List<UserView>();
 	private List<AppointmentView> _appointmentList = new List<AppointmentView>();
+
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -148,41 +177,38 @@ This page is for listing all of an individual trainer's upcoming appointments'
 
 			if (await _query.TrainerToUser(trainer_id) is UserView user)
 				_currentUser = user;
-			_trainerAppointmentList = (await _query.TrainerToAppointmentAll(trainer_id)).OrderBy(a => a.start_time).ToList();
-			//get the name of the client for each appointment and set them to the appointment list
-			foreach (var appt in _trainerAppointmentList)
+
+			//get the clients assigned to the trainer
+			_clientList = await _query.TrainerClientList(trainer_id);
+
+			//add the clients to the user client list
+			foreach (var client in _clientList)
 			{
-				ClientEntity client = await _query.AppointmentToClient(appt.appointment_id);
-				if (client != null)
+				UserView clientUser = await _query.ClientToUser(client.client_id);
+				if (clientUser != null)
 				{
-					UserView clientUser = await _query.ClientToUser(client.client_id);
-					if (clientUser != null)
-					{
-						AppointmentView appointmentView = new AppointmentView(clientUser.FirstName + " " + clientUser.LastName, appt.start_time, appt.end_time);
-						_appointmentList.Add(appointmentView);
-					}
-					else
-					{
-						AppointmentView appointmentView = new AppointmentView("Client number not assigned", appt.start_time, appt.end_time);
-						_appointmentList.Add(appointmentView);
-					}
-				}
-				else
-				{
-					AppointmentView appointmentView = new AppointmentView("No client assigned to appointment", appt.start_time, appt.end_time);
-					_appointmentList.Add(appointmentView);
+					_clientUserList.Add(clientUser);	
 				}
 
-				
-				
+				//add the client's appointments to the trainer's schedule
+				List<AppointmentEntity> userAppointmentList = new List<AppointmentEntity>();
+				userAppointmentList = await _query.ClientToAppointmentAll(client.client_id);
+
+				if (userAppointmentList != null)
+				{
+					foreach (var appt in userAppointmentList)
+					{
+						AppointmentView appointmentToAdd = new AppointmentView(clientUser.FirstName + " " + clientUser.LastName, appt.start_time, appt.end_time);
+						_appointmentList.Add(appointmentToAdd);
+					}
+				}
 
 			}
 
-			_ready = true;
+			_appointmentList.Sort((s1, s2) => s1.start_time.CompareTo(s2.start_time));
 		}
-		else
-		{
-			NavigationManager.NavigateTo("/");
-		}
+		
+		_ready = true;
+		
 	}
 }
