@@ -244,6 +244,13 @@ namespace GymSync {
 				.ToListAsync();
 		}
 
+		public async Task<List<ClientEntity>> TrainerClientList(int trainer_id) {
+			return await _context.CLIENT
+				.Where(c => c.current_trainer_id == trainer_id)
+				.ToListAsync();
+
+		}
+
 		public async Task<StaffEntity?> UserToStaff(int userID) {
 			return await _context.USER
 				.Where(u => u.user_id == userID)

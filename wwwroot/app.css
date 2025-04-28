@@ -76,6 +76,7 @@ h1:focus {
     border: 1px solid;
 }
 
+
 .schedule-head {
     text-transform: uppercase;
 }
@@ -109,6 +110,10 @@ h1:focus {
     margin: 0% 1%;
     float: left;
     background-color: lightgrey;
+}
+
+.table-title {
+    text-align: center;
 }
 
 

@@ -41,6 +41,7 @@ h5 {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    margin-bottom: 15px;
     font-family: Arial, sans-serif;
     color: #fff; /* White text for contrast on black background */
 }
@@ -288,6 +289,13 @@ body {
     gap: 10px;
 }
 
+/*Table titles*/
+.centered-text-table-title {
+    text-align: center;
+    margin: 0 auto;
+    width: fit-content;
+    font-size: 36px;
+}
 
 
 

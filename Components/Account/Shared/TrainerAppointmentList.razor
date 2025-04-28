@@ -20,30 +20,30 @@
 	/* Source: https://10015.io/tools/css-loader-generator  */
 
 	.dots {
-		width: 88px;
-		height: 42.2px;
-		background: radial-gradient(circle closest-side,#5be1e6 90%,#0000) 0% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 50% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 100% 50%;
-		background-size: calc(100%/3) 21.1px;
-		background-repeat: no-repeat;
-		animation: dots-7ar3yq 1s infinite linear;
+	width: 88px;
+	height: 42.2px;
+	background: radial-gradient(circle closest-side,#5be1e6 90%,#0000) 0% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 50% 50%, radial-gradient(circle closest-side,#5be1e6 90%,#0000) 100% 50%;
+	background-size: calc(100%/3) 21.1px;
+	background-repeat: no-repeat;
+	animation: dots-7ar3yq 1s infinite linear;
 	}
 
 	@@keyframes dots-7ar3yq {
-		20% {
-			background-position: 0% 0%, 50% 50%,100% 50%;
-		}
+	20% {
+	background-position: 0% 0%, 50% 50%,100% 50%;
+	}
 
-		40% {
-			background-position: 0% 100%, 50% 0%,100% 50%;
-		}
+	40% {
+	background-position: 0% 100%, 50% 0%,100% 50%;
+	}
 
-		60% {
-			background-position: 0% 50%, 50% 100%,100% 0%;
-		}
+	60% {
+	background-position: 0% 50%, 50% 100%,100% 0%;
+	}
 
-		80% {
-			background-position: 0% 50%, 50% 50%,100% 100%;
-		}
+	80% {
+	background-position: 0% 50%, 50% 50%,100% 100%;
+	}
 	}
 </style>
 
@@ -74,11 +74,39 @@ This page is for listing all of an individual trainer's upcoming appointments'
 	{
 		@if (@_currentUser != null)
 		{
-			<p class="trainer"> @_currentUser.FirstName @_currentUser.LastName <br /></p>
+			<h2>Welcome, @_currentUser.FirstName @_currentUser.LastName <br /></h2>
+
+			<p class="centered-text-table-title">Assigned Clients</p>
+
 			<table class="schedule-table">
 				<thead>
 					<tr>
-						<th>Appt Id</th>
+						<th>Client Name</th>
+						<th>Client Email</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (_clientUserList.Any())
+					{
+						@foreach (var client in _clientUserList)
+						{
+							<tr>
+								<td>@client.FirstName @client.LastName</td>
+								<td><a href="mailto:@client.email">Email</a></td>
+							</tr>
+						}
+					}
+				</tbody>
+			</table>
+
+			<hr>
+
+			<p class="centered-text-table-title">Upcoming Appointments</p>
+
+			<table class="schedule-table">
+				<thead>
+					<tr>
+						<th>Client Name</th>
 						<th>Start Time</th>
 						<th>End Time</th>
 					</tr>
@@ -91,7 +119,7 @@ This page is for listing all of an individual trainer's upcoming appointments'
 							@if ((appt.start_time - DateTime.Now).TotalDays < 2)
 							{
 								<tr class="near-appt">
-									<td>@appt.appointment_id</td>
+									<td>@appt.clientName</td>
 									<td>@appt.start_time</td>
 									<td>@appt.end_time</td>
 								</tr>
@@ -99,7 +127,7 @@ This page is for listing all of an individual trainer's upcoming appointments'
 							else
 							{
 								<tr>
-									<td>@appt.appointment_id</td>
+									<td>@appt.clientName</td>
 									<td>@appt.start_time</td>
 									<td>@appt.end_time</td>
 								</tr>
@@ -128,7 +156,11 @@ This page is for listing all of an individual trainer's upcoming appointments'
 	public int trainer_id { get; set; }
 
 	private UserView _currentUser = new UserView(0, "first", "last", "email");
-	private List<AppointmentEntity> _appointmentList = new List<AppointmentEntity>();
+
+	private List<ClientEntity> _clientList = new List<ClientEntity>();
+	private List<UserView> _clientUserList = new List<UserView>();
+	private List<AppointmentView> _appointmentList = new List<AppointmentView>();
+
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -148,13 +180,37 @@ This page is for listing all of an individual trainer's upcoming appointments'
 			if (await _query.TrainerToUser(trainer_id) is UserView user)
 				_currentUser = user;
 
-			_appointmentList = (await _query.TrainerToAppointmentAll(trainer_id)).OrderBy(a => a.start_time).ToList();
+			//get the clients assigned to the trainer
+			_clientList = await _query.TrainerClientList(trainer_id);
 
-			_ready = true;
+			//add the clients to the user client list
+			foreach (var client in _clientList)
+			{
+				UserView clientUser = await _query.ClientToUser(client.client_id);
+				if (clientUser != null)
+				{
+					_clientUserList.Add(clientUser);	
+				}
+
+				//add the client's appointments to the trainer's schedule
+				List<AppointmentEntity> userAppointmentList = new List<AppointmentEntity>();
+				userAppointmentList = await _query.ClientToAppointmentAll(client.client_id);
+
+				if (userAppointmentList != null)
+				{
+					foreach (var appt in userAppointmentList)
+					{
+						AppointmentView appointmentToAdd = new AppointmentView(clientUser.FirstName + " " + clientUser.LastName, appt.start_time, appt.end_time);
+						_appointmentList.Add(appointmentToAdd);
+					}
+				}
+
+			}
+
+			_appointmentList.Sort((s1, s2) => s1.start_time.CompareTo(s2.start_time));
 		}
-		else
-		{
-			NavigationManager.NavigateTo("/");
-		}
+		
+		_ready = true;
+		
 	}
 }
