@@ -1,0 +1,8 @@
+﻿@page "/new_appointment_day/{SelectedDate}"
+
+<h3>Appointments for @SelectedDate.ToString()</h3>
+
+@code {
+	[Parameter]
+	public string SelectedDate { get; set; }
+}

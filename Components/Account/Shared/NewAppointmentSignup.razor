@@ -1,5 +1,6 @@
 ﻿@inject UserSessionService _userSession;
 @inject ApplicationDbContext DbContext;
+@inject NavigationManager Navigation;
 
 
 @page "/appointment_signup/{client_id:int}"
@@ -30,13 +31,16 @@
 		var dayDate = new DateTime(displayYear, displayMonth, i);
 		bool hasAppt = appointmentList.Any(n => n.start_time.Date == dayDate.Date);
 
-		<div class="calendar-div">
+		var dailyCalendarItem = appointmentList.FirstOrDefault(n => n.start_time.Date == new DateTime(displayYear, displayMonth, i));
+
+
+		<div class="calendar-div" @onclick="() => NavigateToDay(dayDate)">
 			<div class="calendar-inner">
 				<h2>@i</h2>
-						
+
 				@if (hasAppt)
 				{
-					<span class="calendar-span">Appt</span>
+					<span class="calendar-span">Appt @dailyCalendarItem.start_time.ToString("hh.mm tt")</span>
 				}
 			</div>			
 		</div>
@@ -119,7 +123,7 @@
 		monthStart = new DateTime(displayYear, displayMonth, 1);
 		monthEnd = monthStart.AddMonths(1).AddDays(-1);
 		numDummyColumn = (int)monthStart.DayOfWeek;
-		
+
 		displayMonthName = displayMonth switch
 		{
 			1 => "January",
@@ -137,7 +141,14 @@
 			_ => ""
 		};
 
-		
+
+	}
+
+	private void NavigateToDay(DateTime dayDate)
+	{
+			var dateString = dayDate.ToString("yyyy-MM-dd");
+			Navigation.NavigateTo($"/new_appointment_day/{dateString}");
+
 	}
 
 }
