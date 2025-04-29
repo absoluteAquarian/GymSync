@@ -116,6 +116,26 @@ h1:focus {
     text-align: center;
 }
 
+.calendar-section {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-div {
+    border: 1px solid white !important;
+    background-color: blue;
+    padding: 10px;
+    min-height: 60px;
+    box-sizing: border-box;
+}
+
+.calendar-span {
+    background-color: violet !important;
+    color: white;
+    padding: 2px 4px;
+    display:inline-block;
+}
+
 
 
 

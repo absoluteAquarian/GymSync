@@ -1,0 +1,143 @@
+﻿@inject UserSessionService _userSession;
+@inject ApplicationDbContext DbContext;
+
+
+@page "/appointment_signup/{client_id:int}"
+@using GymSync.Components;
+@using GymSync.Data;
+@using GymSync.Models;
+@using GymSync.Views;
+@using GymSync.Services;
+@using Microsoft.EntityFrameworkCore;
+
+
+<h1>NewAppointmentSignup</h1>
+
+<h3>Today's Date: @currentMonth / @currentDay / @currentYear</h3>
+<button @onclick="()=> {monthsAway--; CreateMonth();}">Previous Month</button>
+<button @onclick="()=>{monthsAway++; CreateMonth();}">Next Month</button>
+
+<p>@displayMonthName @displayYear</p>
+
+<section class="calendar-section">
+	@for (int i = 0; i < numDummyColumn; i++)
+	{
+		<div class="calendar-div"></div>
+	}
+
+	@for (int i = 1; i <= numDaysInMonth; i++)
+	{
+		var dayDate = new DateTime(displayYear, displayMonth, i);
+		bool hasAppt = appointmentList.Any(n => n.start_time.Date == dayDate.Date);
+
+		<div class="calendar-div">
+			<h2>@i</h2>
+						
+			@if (hasAppt)
+			{
+				<span class="calendar-span">Appt</span>
+			}
+			
+			
+		</div>
+	}
+
+</section>
+
+
+
+@code {
+	[Parameter]
+	public int client_id { get; set; }
+
+	private bool _ready = false;
+
+	//today's information
+	string currentMonthName = "";
+	int currentMonth = 0;
+	int currentDay = 0;
+	int currentYear = 2025;
+
+	//list of client's appointments
+	private List<AppointmentEntity> appointmentList = [];
+	private List<DateTime> appointmentDates = new List<DateTime>();
+
+	//calendar variables
+	string displayMonthName = "";
+	int displayMonth = 0;
+	int displayDay = 0;
+	int displayYear = 2025;
+	DateTime monthEnd;
+	DateTime monthStart;
+	int numDummyColumn = 0;
+	int monthsAway = 0;
+	int yearsAway = 0;
+	int numDaysInMonth = 0;
+
+	string calendarMade = "";
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+		Query _query = new Query(DbContext);
+
+		//get list of client's appointments
+		appointmentList = await _query.ClientToAppointmentAll(client_id);
+		//convert them into days
+		foreach (var appt in appointmentList)
+		{
+			appointmentDates.Add(appt.start_time);
+		}
+
+
+		//set today for calendar
+		currentMonth = DateTime.Now.Month;
+		currentYear = DateTime.Now.Year;
+		currentDay = DateTime.Now.Day;
+
+
+		//create calendar on startup
+		DisplayCalendar();
+
+		_ready = true;
+	}
+
+	void DisplayCalendar()
+	{
+		calendarMade = "Simulating calendar made";
+		CreateMonth();
+	}
+
+	void CreateMonth()
+	{
+		var tempdate = DateTime.Now.AddMonths(monthsAway);
+		displayMonth = tempdate.Month;
+		displayYear = tempdate.Year;
+
+		numDaysInMonth = DateTime.DaysInMonth(displayYear, displayMonth);
+		monthStart = new DateTime(displayYear, displayMonth, 1);
+		monthEnd = monthStart.AddMonths(1).AddDays(-1);
+		numDummyColumn = (int)monthStart.DayOfWeek;
+		
+		displayMonthName = displayMonth switch
+		{
+			1 => "January",
+			2 => "February",
+			3 => "March",
+			4 => "April",
+			5 => "May",
+			6 => "June",
+			7 => "July",
+			8 => "August",
+			9 => "September",
+			10 => "October",
+			11 => "November",
+			12 => "December",
+			_ => ""
+		};
+
+		
+	}
+
+}
