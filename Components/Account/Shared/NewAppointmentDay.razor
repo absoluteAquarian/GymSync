@@ -1,8 +1,21 @@
 ﻿@page "/new_appointment_day/{SelectedDate}"
 
+@using System.Globalization;
+
 <h3>Appointments for @SelectedDate.ToString()</h3>
+
+<ul>
+	@foreach (var hour in Enumerable.Range(0, 24))
+	{
+		<li>@hour:00</li>	
+	}
+</ul>
+
+
 
 @code {
 	[Parameter]
-	public string SelectedDate { get; set; }
+	public string SelectedDate { get; set; } = string.Empty;
+
+	public DateTime parsedDate => DateTime.ParseExact(SelectedDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 }
