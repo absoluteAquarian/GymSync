@@ -31,14 +31,14 @@
 		bool hasAppt = appointmentList.Any(n => n.start_time.Date == dayDate.Date);
 
 		<div class="calendar-div">
-			<h2>@i</h2>
+			<div class="calendar-inner">
+				<h2>@i</h2>
 						
-			@if (hasAppt)
-			{
-				<span class="calendar-span">Appt</span>
-			}
-			
-			
+				@if (hasAppt)
+				{
+					<span class="calendar-span">Appt</span>
+				}
+			</div>			
 		</div>
 	}
 

@@ -119,6 +119,8 @@ h1:focus {
 .calendar-section {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
+    max-width:700px;
+    width: 100%;
 }
 
 .calendar-div {
@@ -129,11 +131,24 @@ h1:focus {
     box-sizing: border-box;
 }
 
+.calendar-inner{
+    display: flex;
+    flex-direction: row;
+    justify-content:space-between;
+    align-items:center;
+    width: 100%;
+}
+
+.calendar-inner h2{
+    margin: 0;
+    font-size: 1.2em;
+}
+
 .calendar-span {
-    background-color: violet !important;
+    background-color: violet;
     color: white;
     padding: 2px 4px;
-    display:inline-block;
+    font-size: 0.8em;
 }
 
 
