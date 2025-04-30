@@ -409,6 +409,8 @@ namespace GymSync {
 	}
 
 	public static partial class QueryExtensions {
+		public static async Task<T> AllowNull<T>(this Task<T?> task) => (await task)!;
+
 		public static IQueryable<TResult> AnonymousMergeCrossReferencePrimary<TAnonymous, TCross, TResult>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector, Expression<Func<TAnonymous, TCross, TResult>> resultSelector)
 		where TCross : ICrossReference<TCross> {
 			return query.Join(cross, anonymousKeySelector, TCross.GetPrimaryKey(), resultSelector);
