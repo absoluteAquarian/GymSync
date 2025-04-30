@@ -1,21 +1,146 @@
-﻿@page "/new_appointment_day/{SelectedDate}"
+﻿@inject UserSessionService userSession;
+@inject ApplicationDbContext DbContext;
+
+@page "/new_appointment_day/{SelectedDate}"
 
 @using System.Globalization;
+@using GymSync.Services;
+@using GymSync.Models;
+@using GymSync.Views
+@using GymSync.Data;
 
 <h3>Appointments for @SelectedDate.ToString()</h3>
 
-<ul>
-	@foreach (var hour in Enumerable.Range(0, 24))
-	{
-		<li>@hour:00</li>	
+@if (!_ready)
+{
+	<p><br /><br /><div class="dots"></div><br /><br /></p>
+}
+else{
+	<ul>
+		@foreach (var hour in Enumerable.Range(0, 24))
+		{
+			var hourlyAppointments = clientAppointments
+				.Where(appt => appt.start_time.Hour == hour)
+				.OrderBy(appt => appt.start_time)
+				.ToList();
+
+			var hourlyTrainerAppointments = trainerAppointments
+				.Where(appt => appt.start_time.Hour == hour)
+				.OrderBy(appt => appt.start_time)
+				.ToList();
+
+
+			<li class="hourly-appointment-item">
+				<div cclass="hour-block">@hour:00</div>
+
+
+			@if (hourlyAppointments.Any())
+			{
+				<ul class="appointment-list">
+					@foreach (var appt in hourlyAppointments)
+					{
+						<li class="appt-item">Appt</li>
+					}
+				</ul>
+			}
+			else if (hourlyTrainerAppointments.Any())
+			{
+				<ul class="appointment-list">
+					@foreach (var appt in trainerAppointments)
+					{
+						<li class="appt-item">Trainer Appt</li>
+					}
+				</ul>
+			}
+				else
+			{
+				<ul class="appointment-list">
+					<li class="appt-item">--</li>					
+				</ul>
+			}
+
+
+		</li>	
 	}
 </ul>
 
+}
 
 
 @code {
 	[Parameter]
 	public string SelectedDate { get; set; } = string.Empty;
 
+	private bool _ready; 
+
 	public DateTime parsedDate => DateTime.ParseExact(SelectedDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+	//TODO: get the appointments for this client on this day
+	private List<AppointmentEntity> clientAppointments = [];
+
+	//TODO: get the appointments for clients trainer on this day
+	private List<AppointmentEntity> trainerAppointments = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+
+		Query _query = new Query(DbContext);
+
+		//get client's appointments
+		if (userSession.IsClient)
+		{
+			var allAppointments = await _query.ClientToAppointmentAll((int)userSession.ClientID);
+			clientAppointments = allAppointments
+				.Where(appt => appt.start_time.Date == parsedDate.Date)
+				.ToList();
+		}
+
+		int trainer_id = 0;
+		//get trainer
+		ClientEntity client = await _query.ClientIdToClient((int)userSession.ClientID);
+		if (client != null)
+		{
+			trainer_id = client.current_trainer_id;
+
+			//get list of trainer's clients
+			List<ClientEntity> clients = await _query.TrainerClientList(trainer_id);
+			List<UserView> _clientUserList = [];
+
+			//get trainer's appointments
+			foreach (var trainerClient in clients)
+			{
+				UserView clientUser = await _query.ClientToUser(trainerClient.client_id);
+				if (clientUser != null)
+				{
+					_clientUserList.Add(clientUser);
+				}
+
+				//add the client's appointments to the trainer's schedule
+				List<AppointmentEntity> userAppointmentList = new List<AppointmentEntity>();
+				userAppointmentList = await _query.ClientToAppointmentAll(client.client_id);
+				List<AppointmentEntity> appointmentsToAdd = [];
+				appointmentsToAdd = userAppointmentList
+					.Where(appt => appt.start_time.Date == parsedDate.Date)
+					.ToList();
+
+
+				if (appointmentsToAdd != null)
+				{
+					foreach (var appt in userAppointmentList)
+					{
+						trainerAppointments.Add(appt);
+					}
+				}
+			}
+		}
+
+
+		_ready = true;
+
+	}
+
+
+
+
 }
