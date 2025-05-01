@@ -152,13 +152,24 @@ h1:focus {
 }
 
 
-.hourly-appointment-item {
+.unavailable-hourly-appointment-item {
     display: flex;
     outline: solid 1px;
     justify-content: flex-start;
     gap: 10px;
     padding: 4px 0;
     width: 200px;
+    background-color: yellow;
+}
+
+.available-hourly-appointment-item {
+    display: flex;
+    outline: solid 1px;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 4px 0;
+    width: 200px;
+    background-color: green;
 }
 
 

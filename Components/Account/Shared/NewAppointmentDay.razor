@@ -17,7 +17,7 @@
 }
 else{
 	<ul>
-		@foreach (var hour in Enumerable.Range(0, 24))
+		@foreach (var hour in Enumerable.Range(6, 18))
 		{
 			var hourlyAppointments = clientAppointments
 				.Where(appt => appt.start_time.Hour == hour)
@@ -30,37 +30,40 @@ else{
 				.ToList();
 
 
-			<li class="hourly-appointment-item">
-				<div cclass="hour-block">@hour:00</div>
+			
 
 
 			@if (hourlyAppointments.Any())
 			{
-				<ul class="appointment-list">
-					@foreach (var appt in hourlyAppointments)
-					{
-						<li class="appt-item">Appt</li>
-					}
-				</ul>
+				<li class="unavailable-hourly-appointment-item">
+					<div cclass="hour-block">@hour:00</div>
+
+					<ul class="appointment-list">
+					
+						@foreach (var appt in hourlyAppointments)
+						{
+							<li class="appt-item">Appt</li>
+						}
+					</ul>
+				</li>
 			}
 			else if (hourlyTrainerAppointments.Any())
 			{
-				<ul class="appointment-list">
-					@foreach (var appt in trainerAppointments)
-					{
-						<li class="appt-item">Trainer Appt</li>
-					}
-				</ul>
+				
 			}
 				else
 			{
-				<ul class="appointment-list">
-					<li class="appt-item">--</li>					
-				</ul>
+				<li class="available-hourly-appointment-item">
+					<div cclass="hour-block">@hour:00</div>
+
+					<ul class="appointment-list">
+						<li class="appt-item">--</li>					
+					</ul>
+				</li>
 			}
 
 
-		</li>	
+		
 	}
 </ul>
 
