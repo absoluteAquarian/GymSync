@@ -1,5 +1,6 @@
 ﻿@inject UserSessionService userSession;
 @inject ApplicationDbContext DbContext;
+@inject NavigationManager Navigation;
 
 @page "/new_appointment_day/{SelectedDate}"
 
@@ -30,7 +31,7 @@ else{
 				.ToList();
 
 
-			
+
 
 
 			@if (hourlyAppointments.Any())
@@ -39,7 +40,7 @@ else{
 					<div cclass="hour-block">@hour:00</div>
 
 					<ul class="appointment-list">
-					
+
 						@foreach (var appt in hourlyAppointments)
 						{
 							<li class="appt-item">Appt</li>
@@ -49,23 +50,41 @@ else{
 			}
 			else if (hourlyTrainerAppointments.Any())
 			{
-				
+
 			}
-				else
+			else
 			{
 				<li class="available-hourly-appointment-item">
-					<div cclass="hour-block">@hour:00</div>
+					<div class="hour-block">@hour:00</div>
 
 					<ul class="appointment-list">
-						<li class="appt-item">--</li>					
+						<button class="btn btn-link appt-link" @onclick="() => GoToConfirmation(SelectedDate, hour)">Available</button>					
 					</ul>
 				</li>
 			}
 
 
-		
-	}
-</ul>
+
+		}
+	</ul>
+
+	<div class="modal fade" id="unavailableModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="modalLabel">Unavailable</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					Appointment is unavailable.
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 
 }
 
@@ -142,6 +161,13 @@ else{
 		_ready = true;
 
 	}
+
+	private void GoToConfirmation(string date, int hour)
+	{
+		Navigation.NavigateTo($"/confirm-appointment/{date}/{hour}");
+	}
+
+
 
 
 

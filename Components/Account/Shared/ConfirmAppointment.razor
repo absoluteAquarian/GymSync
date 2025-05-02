@@ -1,0 +1,55 @@
+﻿@inject ApplicationDbContext dbContext;
+@inject UserSessionService UserSession;
+
+@page "/confirm-appointment/{appointmentDate}/{startTime}"
+
+@using GymSync.Data;
+@using GymSync.Services;
+@using MySqlConnector;
+@using Microsoft.EntityFrameworkCore;
+
+<h3>Confirm Appointment For</h3>
+<p>Date: @appointmentDate</p>
+<p>Time Start: @startDateTime</p>
+<p>Time End: @endDateTime</p>
+<button class="btn" @onclick="()=>ConfirmAppointmentClick()">Confirm</button>
+
+
+
+
+@code {
+
+	[Parameter]
+	public string appointmentDate { get; set; } = "";
+	[Parameter]
+	public string startTime { get; set; } = "";
+
+	private int clientId;
+	private string startDateTime = "";
+	private string endDateTime = "";
+
+
+
+	protected override async Task OnParametersSetAsync()
+	{
+		clientId = (int)UserSession.ClientID;
+
+		int startTimeInt = 0;
+		Int32.TryParse(startTime, out startTimeInt);
+		int endTimeInt = startTimeInt + 1;
+
+		startDateTime = appointmentDate + " " + startTimeInt.ToString() + ":00:00";
+		endDateTime = appointmentDate + " " + endTimeInt.ToString() + ":00:00";
+	}
+
+	private async Task ConfirmAppointmentClick()
+	{
+		var clientParam = new MySqlParameter("@clientId", clientId);
+		var startParam = new MySqlParameter("@startDateTime", startDateTime);
+		var endParam = new MySqlParameter("@endDateTime", endDateTime);
+
+		await dbContext.Database.ExecuteSqlRawAsync("CALL schedule_appointment(@clientId, @startDateTime, @endDateTime)", clientParam, startParam, endParam);
+	}
+
+
+}
