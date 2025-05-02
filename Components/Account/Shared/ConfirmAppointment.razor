@@ -1,5 +1,6 @@
 ﻿@inject ApplicationDbContext dbContext;
 @inject UserSessionService UserSession;
+@inject NavigationManager Navigation;
 
 @page "/confirm-appointment/{appointmentDate}/{startTime}"
 
@@ -49,6 +50,8 @@
 		var endParam = new MySqlParameter("@endDateTime", endDateTime);
 
 		await dbContext.Database.ExecuteSqlRawAsync("CALL schedule_appointment(@clientId, @startDateTime, @endDateTime)", clientParam, startParam, endParam);
+
+		Navigation.NavigateTo($"/client-appointment-list/{@clientId}");
 	}
 
 
