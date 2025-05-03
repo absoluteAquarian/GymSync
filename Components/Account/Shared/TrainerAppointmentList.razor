@@ -175,10 +175,9 @@ This page is for listing all of an individual trainer's upcoming appointments'
 		{
 			_ready = false;
 
-			Query _query = new Query(DbContext);
+			_query = new Query(DbContext);
 
-			if (await _query.TrainerToUser(trainer_id) is UserView user)
-				_currentUser = user;
+			_currentUser = await _query.TrainerToUser(trainer_id).AllowNull();
 
 			//get the clients assigned to the trainer
 			_clientList = await _query.TrainerClientList(trainer_id);
@@ -186,28 +185,25 @@ This page is for listing all of an individual trainer's upcoming appointments'
 			//add the clients to the user client list
 			foreach (var client in _clientList)
 			{
-				UserView clientUser = await _query.ClientToUser(client.client_id);
-				if (clientUser != null)
-				{
-					_clientUserList.Add(clientUser);	
+				// Async methods to reduce blocking
+				static async Task<UserView?> GetAndAddPossibleClient(TrainerAppointmentList self, int clientID) {
+					var clientUser = await self._query.ClientToUser(clientID);
+					if (clientUser is not null)
+						self._clientUserList.Add(clientUser);
+					return clientUser;
 				}
 
-				//add the client's appointments to the trainer's schedule
-				List<AppointmentEntity> userAppointmentList = new List<AppointmentEntity>();
-				userAppointmentList = await _query.ClientToAppointmentAll(client.client_id);
-
-				if (userAppointmentList != null)
-				{
-					foreach (var appt in userAppointmentList)
-					{
-						AppointmentView appointmentToAdd = new AppointmentView(clientUser.FirstName + " " + clientUser.LastName, appt.start_time, appt.end_time);
-						_appointmentList.Add(appointmentToAdd);
-					}
+				static async Task GetAndAddPossibleAppointments(TrainerAppointmentList self, int clientID) {
+					//add the client's appointments to the trainer's schedule
+					self._appointmentList.AddRange(await self._query.GetAppointmentsForClient(clientID));
+					self._appointmentList.Sort((s1, s2) => s1.start_time.CompareTo(s2.start_time));
 				}
 
+				await Task.WhenAll(
+					GetAndAddPossibleClient(this, client.client_id),
+					GetAndAddPossibleAppointments(this, client.client_id)
+				);
 			}
-
-			_appointmentList.Sort((s1, s2) => s1.start_time.CompareTo(s2.start_time));
 		}
 		
 		_ready = true;

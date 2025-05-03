@@ -339,6 +339,7 @@ namespace GymSync {
 		}
 		#endregion
 
+		#region Specialized Queries
 		public async Task<List<StaticGroup<UserView, UserView>>> GetClientsForTrainerAll() {
 			// TODO: Return empty client lists for trainers with no clients?
 			return await _context.TRAINER
@@ -387,7 +388,7 @@ namespace GymSync {
 		}
 
 		public async Task<UserRolesView?> GetUserRolesForUser(int userID) {
-			// This method allows missing columsn when joining the various cross reference tables, since a user may not have a given role
+			// This method allows missing columns when joining the various cross reference tables, since a user may not have a given role
 
 			return await _context.USER
 				.Where(u => u.user_id == userID)
@@ -406,6 +407,19 @@ namespace GymSync {
 				.Select(anon => new UserRolesView(new UserView(anon.USER.user_id, anon.USER.firstName, anon.USER.lastName, anon.USER.email), anon.CLIENT, anon.TRAINER, anon.STAFF))
 				.FirstOrDefaultAsync();
 		}
+
+		public async Task<List<AppointmentView>> GetAppointmentsForClient(int clientID) {
+			return await _context.CLIENT
+				.Where(c => c.client_id == clientID)
+				// Resolve the user for the client
+				.MergeWithCrossReferenceForeign(_context.USER_x_CLIENT, (c, uc) => new { c.client_id, uc.user_id })
+				.AnonymousMergeWhereMatchesKeys(_context.USER, anon => anon.user_id, (anon, u) => new { anon.client_id, User = new UserView(u.user_id, u.firstName, u.lastName, u.email) })
+				// Resolve the appointments for the client
+				.AnonymousMergeCrossReferenceForeign(_context.APPOINTMENT_x_CLIENT, anon => anon.client_id, (anon, ac) => new { anon.User, ac.appointment_id })
+				.AnonymousMergeWhereMatchesKeys(_context.APPOINTMENT, anon => anon.appointment_id, (anon, a) => new AppointmentView(anon.User.FirstName + " " + anon.User.LastName, a.start_time, a.end_time))
+				.ToListAsync();
+		}
+		#endregion
 	}
 
 	public static partial class QueryExtensions {
