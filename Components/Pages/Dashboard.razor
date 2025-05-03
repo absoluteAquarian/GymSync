@@ -1,8 +1,10 @@
 ﻿@inject ApplicationDbContext _dbContext;
 @inject UserSessionService _UserSession;
 @inject NavigationManager _Navigation;
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @page "/dashboard/{user_id:int}"
+@page "/dashboard"
 @using GymSync.Data
 @using GymSync.Models
 @using GymSync.Views;
@@ -51,13 +53,32 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
+		_query = new Query(_dbContext);
+
 		_ready = false;
 		if (_UserSession.UserID != null)
 		{
 			_userID = (int)_UserSession.UserID;
 		}
+		else
+		{
+			// Get the current authentication state (contains the current user identity and claims):
+			var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
-		_query = new Query(_dbContext);
+			// Extract the ClaimsPrincipal representing the current user:
+			var user = authenticationState.User;
+
+			// Check if the user is authenticated:
+			if (user.Identity != null && !string.IsNullOrWhiteSpace(user.Identity.Name) && user.Identity.IsAuthenticated)
+			{
+				// Use the authenticated user's email (user.Identity.Name) to fetch the corresponding UserView:
+				UserView? userUV = await _query.AspNetUserToUser(user.Identity.Name);
+
+				// Extract and store the UserID from the returned UserView object:
+				if (userUV != null)
+					_userID = userUV.UserID;
+			}
+		}
 
 		var roles = await _query.GetUserRolesForUser(_userID);
 		if (roles is not null)
