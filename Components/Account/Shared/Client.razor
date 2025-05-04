@@ -143,29 +143,29 @@
 		<div class="card">
 			<div class="card-header">Training Schedule</div>
 			<div class="card-body">
-				@if (!_ready)
-				{
-					<p><br /><br /><div class="dots"></div><br /><br /></p>
-				}
-				else
-				{
-					@if (@_currentUser != null)
-					{
+@if (!_ready)
+{
+	<p><br /><br /><div class="dots"></div><br /><br /></p>
+}
+else
+{
+	@if (@_currentUser != null)
+	{
 						<div hidden="@hideData">
-							<p class="client"> @_currentUser.FirstName @_currentUser.LastName <br /></p>
-							<table class="schedule-table">
-								<thead>
-									<tr>
+		<p class="client"> @_currentUser.FirstName @_currentUser.LastName <br /></p>
+		<table class="schedule-table">
+			<thead>
+				<tr>
 										<th>Trainer</th>
-										<th>Start Time</th>
-										<th>End Time</th>
-									</tr>
-								</thead>
-								<tbody>
-									@if (_appointmentList.Any())
-									{
-										@foreach (var appt in _appointmentList)
-										{
+					<th>Start Time</th>
+					<th>End Time</th>
+				</tr>
+			</thead>
+			<tbody>
+				@if (_appointmentList.Any())
+				{
+					@foreach (var appt in _appointmentList)
+					{
 											<tr class="@( (appt.start_time - DateTime.Now).TotalDays < 2 ? "near-appt" : "" )">
 												<td>
 													@_currentTrainer.LastName, @_currentTrainer.FirstName
@@ -183,20 +183,21 @@
 													value="@appt.end_time.ToString("yyyy-MM-ddTHH:mm")"
 													style="color: black;" />
 												</td>
-											</tr>
-										}
-									}
-								</tbody>
-							</table>
-						</div>
-					}
-					else
-					{
-						<div style="width: 33%" class="alert alert-danger" role="alert">
-							Client does not exist!
-						</div>
+							</tr>
+						}
 					}
 				}
+			</tbody>
+		</table>
+						</div>
+	}
+	else
+	{
+		<div style="width: 33%" class="alert alert-danger" role="alert">
+			Client does not exist!
+		</div>
+	}
+}
 			</div>
 		</div>
 	</div>
@@ -324,23 +325,26 @@
 		{
 			_validLogin = true;
 
-			// Initialize the Stopwatch:
-			System.Diagnostics.Stopwatch stopwatch = null;
+		// Initialize the Stopwatch:
+		System.Diagnostics.Stopwatch stopwatch = null;
 
-			// Start the Stopwatch:
-			stopwatch = System.Diagnostics.Stopwatch.StartNew();
+		// Start the Stopwatch:
+		stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-			// Retrieve all appointments related to the given client ID and store them in the list:
-			_appointmentList = await _query.ClientToAppointmentAll(client_id);
+		// Retrieve all appointments related to the given client ID and store them in the list:
+		_appointmentList = await _query.ClientToAppointmentAll(client_id);
 
-			// Stop the Stopwatch once the query is complete:
-			stopwatch.Stop();
+		// Retrieve the user's profile information based on the client ID:
+		_currentUser = await _query.ClientToUser(client_id);
 
-			// Get the elapsed time in milliseconds
-			executionTime = stopwatch.ElapsedMilliseconds;
+		// Stop the Stopwatch once the query is complete:
+		stopwatch.Stop();
+
+		// Get the elapsed time in milliseconds
+		executionTime = stopwatch.ElapsedMilliseconds;
 
 			// Set the component to ready state to allow rendering:
-			_ready = true;
+		_ready = true;
 
 			NavigateAway(_validLogin);
 		}
