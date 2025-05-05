@@ -4,6 +4,7 @@ using GymSync.Querying;
 using GymSync.Views;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 namespace GymSync {
 	public class Query(ApplicationDbContext context) {
@@ -43,6 +44,12 @@ namespace GymSync {
 				.ToCrossReferencePrimary(_context.APPOINTMENT_x_CLIENT)
 				.FromCrossReferenceForeign(_context.CLIENT)
 				.ToListAsync();
+		}
+
+		public async Task<ClientEntity?> ClientIdToClient(int clientId) {
+			return await _context.CLIENT
+				.FindAsync(clientId);
+				
 		}
 
 		public async Task<List<ClientEntity>> AppointmentToClientAll() {

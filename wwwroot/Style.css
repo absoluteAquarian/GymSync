@@ -36,6 +36,16 @@ h5 {
     color: whitesmoke;
 }
 
+.calendar-section {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+    .calendar-section > div {
+        border: 1px solid black;
+        padding: 10px;
+    }
+
 /* General table styling */
 .schedule-table {
     width: 100%;
