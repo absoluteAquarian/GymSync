@@ -116,6 +116,83 @@ h1:focus {
     text-align: center;
 }
 
+.calendar-section {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    max-width:700px;
+    width: 100%;
+}
+
+.calendar-div {
+    border: 1px solid white !important;
+    background-color: blue;
+    padding: 10px;
+    min-height: 60px;
+    box-sizing: border-box;
+}
+
+.calendar-inner{
+    display: flex;
+    flex-direction: row;
+    justify-content:space-between;
+    align-items:center;
+    width: 100%;
+}
+
+.calendar-inner h2{
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.calendar-span {
+    background-color: violet;
+    color: white;
+    padding: 2px 4px;
+    font-size: 0.8em;
+}
+
+
+.unavailable-hourly-appointment-item {
+    display: flex;
+    outline: solid 1px;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 4px 0;
+    width: 200px;
+    background-color: yellow;
+}
+
+.available-hourly-appointment-item {
+    display: flex;
+    outline: solid 1px;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 4px 0;
+    width: 200px;
+    background-color: green;
+}
+
+
+.hour-block {
+    width: 70px;
+    font-weight:bold;
+    padding-right: 10px;
+}
+
+.appointment-list {
+    list-style: none;
+    margin:0;
+    padding-left: 10px;
+}
+
+.appt-item{
+    padding: 2px 0;
+}
+
+
+
+
+
 
 
 
