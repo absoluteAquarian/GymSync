@@ -19,6 +19,7 @@ else
 
 	<button @onclick="()=>LinkToUserAdmin()">Go To User Admin</button>
 	<button @onclick="()=> LinkToEquipmentAdmin()">Go To Equipement Management</button>
+	<button @onclick="()=> LinkToStaffJobListing()">Go To Staff Job Listing</button>
 }
 
 
@@ -36,5 +37,10 @@ else
 	private void LinkToEquipmentAdmin()
 	{
 		Navigation.NavigateTo($"/equipment-availability");
+	}
+
+	private void LinkToStaffJobListing()
+	{
+		Navigation.NavigateTo($"/staff-job-list/{UserSession.StaffID}");	
 	}
 }
