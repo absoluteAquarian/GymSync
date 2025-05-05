@@ -1,0 +1,40 @@
+﻿@inject UserSessionService UserSession
+@inject NavigationManager Navigation
+
+@page "/admin-dashboard"
+
+@using GymSync.Services;
+
+<h3>Adminisatration Dashboard</h3>
+
+
+@if (!UserSession.IsStaff)
+{
+	<h2>Sorry, but you have been redirected here in error</h2>
+	<p>Please return to your homepage</p>
+}
+else
+{
+	<p>Welcome to the admin dashboard!</p>
+
+	<button @onclick="()=>LinkToUserAdmin()">Go To User Admin</button>
+	<button @onclick="()=> LinkToEquipmentAdmin()">Go To Equipement Management</button>
+}
+
+
+
+
+
+@code {
+
+
+	private void LinkToUserAdmin()
+	{
+		Navigation.NavigateTo($"/user-maintenance");
+	}
+
+	private void LinkToEquipmentAdmin()
+	{
+		Navigation.NavigateTo($"/equipment-availability");
+	}
+}
