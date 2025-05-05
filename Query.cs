@@ -10,6 +10,12 @@ namespace GymSync {
 	public class Query(ApplicationDbContext context) {
 		private readonly ApplicationDbContext _context = context;
 
+		#region Locking
+		private readonly QueryLock _lock = new();
+
+		public QueryLock AcquireLock() => _lock.Acquire();
+		#endregion
+
 		public async Task<UserView?> GetAssignedTrainerForClient(int clientID) {
 			// Get the current_trainer_id from CLIENT:
 			var trainerID = await _context.CLIENT
