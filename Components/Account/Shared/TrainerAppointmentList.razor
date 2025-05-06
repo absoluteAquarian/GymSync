@@ -183,37 +183,36 @@ This page is for listing all of an individual trainer's upcoming appointments'
 			//get the clients assigned to the trainer
 			_clientList = await _query.TrainerClientList(trainer_id);
 
-			// Async methods to reduce blocking
-			static async Task GetAndAddPossibleClients(TrainerAppointmentList self) {
-				//add the clients to the user client list
-				foreach (var client in self._clientList) {
-					UserView? clientUser;
+			await GetAndAddPossibleClients();
 
-					using (self._query.AcquireLock()) {
-						clientUser = await self._query.ClientToUser(client.client_id);
-
-						if (clientUser is not null)
-							self._clientUserList.Add(clientUser);
-					}
-				}
-			}
-
-			await GetAndAddPossibleClients(this);
-
-			static async Task GetAndAddPossibleAppointments(TrainerAppointmentList self) {
-				//add the client's appointments to the trainer's schedule
-				foreach (var client in self._clientList) {
-					using (self._query.AcquireLock())
-						self._appointmentList.AddRange(await self._query.GetAppointmentsForClient(client.client_id));
-				}
-			}
-
-			await Task.WhenAll(GetAndAddPossibleAppointments(this));
+			await Task.WhenAll(GetAndAddPossibleAppointments());  // _appointmentList needs to be populated fully before sorting
 
 			_appointmentList.Sort((s1, s2) => s1.start_time.CompareTo(s2.start_time));
 		}
-		
+
 		_ready = true;
-		
+
+	}
+
+	private async Task GetAndAddPossibleClients() {
+		//add the clients to the user client list
+		foreach (var client in _clientList) {
+			UserView? clientUser;
+
+			using (_query.AcquireLock()) {
+				clientUser = await _query.ClientToUser(client.client_id);
+
+				if (clientUser is not null)
+					_clientUserList.Add(clientUser);
+			}
+		}
+	}
+
+	private async Task GetAndAddPossibleAppointments() {
+		//add the client's appointments to the trainer's schedule
+		foreach (var client in _clientList) {
+			using (_query.AcquireLock())
+				_appointmentList.AddRange(await _query.GetAppointmentsForClient(client.client_id));
+		}
 	}
 }
