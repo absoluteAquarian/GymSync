@@ -1,7 +1,10 @@
 ﻿@inject ApplicationDbContext DbContext;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager nav
 
 
 @page "/client/{client_id:int}";
+@page "/client/";
 
 
 @using GymSync.Data;
@@ -50,7 +53,96 @@
 <p>This page displays the cleints appointments and details</p>
 <p><strong>Query execution time: @executionTime milliseconds</strong></p>
 
+@*
+<InputDate @bind-Value="selectedDate" />
+<p>Selected date: @selectedDate.ToShortDateString()</p>
+*@
 
+@* Row with 4 Cards (Circular Progress Bars) *@
+<div class="row">
+	<div class="col-md-3">
+		<div class="card text-center">
+			<div class="card-body">
+				<h5 class="card-title">Heart Rate</h5>
+				<div class="chart-container">
+					<ApexChart @ref="chartHR" TItem="ChartData" Height="350" Options="optionsHeartRate">
+						<ApexPointSeries TItem="ChartData"
+						Items="chartDataHR"
+						Name="Usage"
+						SeriesType="SeriesType.RadialBar"
+						XValue="@(e => e.Label)"
+						YValue="@(e => e.Value)" />
+					</ApexChart>
+					<p>Heart Rate Range: 60-196 b/min</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-3">
+		<div class="card text-center">
+			<div class="card-body">
+				<h5 class="card-title">Calories Burned</h5>
+				<div class="chart-container">
+					<ApexChart @ref="chartCalories" TItem="ChartData" Height="350" Options="optionsCalories">
+						<ApexPointSeries TItem="ChartData"
+						Items="chartDataCalories"
+						Name="Usage"
+						SeriesType="SeriesType.RadialBar"
+						XValue="@(e => e.Label)"
+						YValue="@(e => e.Value)" />
+					</ApexChart>
+					<p>Goal: 500-750 kcal</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-3">
+		<div class="card text-center">
+			<div class="card-body">
+				<h5 class="card-title">Steps</h5>
+				<div class="chart-container">
+					<ApexChart @ref="chartSteps" TItem="ChartData" Height="350" Options="optionsSteps">
+						<ApexPointSeries TItem="ChartData"
+						Items="chartDataSteps"
+						Name="Usage"
+						SeriesType="SeriesType.RadialBar"
+						XValue="@(e => e.Label)"
+						YValue="@(e => e.Value)" />
+					</ApexChart>
+					<p>Goal: 2000 steps</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-3">
+		<div class="card text-center">
+			<div class="card-body">
+				<h5 class="card-title">Distance</h5>
+				<div class="chart-container">
+					<ApexChart @ref="chartDistance" TItem="ChartData" Height="350" Options="optionsDistance">
+						<ApexPointSeries TItem="ChartData"
+						Items="chartDataDistance"
+						Name="Usage"
+						SeriesType="SeriesType.RadialBar"
+						XValue="@(e => e.Label)"
+						YValue="@(e => e.Value)" />
+					</ApexChart>
+					<p>Goal: 2.5 miles</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@* Row with Training Schedule and Ring Pie Chart *@
+<div class="row mt-4">
+	<div class="col-md-6">
+		<div class="card">
+			<div class="card-header">Training Schedule</div>
+			<div class="card-body">
 @if (!_ready)
 {
 	<p><br /><br /><div class="dots"></div><br /><br /></p>
@@ -59,11 +151,12 @@ else
 {
 	@if (@_currentUser != null)
 	{
+						<div hidden="@hideData">
 		<p class="client"> @_currentUser.FirstName @_currentUser.LastName <br /></p>
 		<table class="schedule-table">
 			<thead>
 				<tr>
-					<th>Appt Id</th>
+										<th>Trainer</th>
 					<th>Start Time</th>
 					<th>End Time</th>
 				</tr>
@@ -73,26 +166,30 @@ else
 				{
 					@foreach (var appt in _appointmentList)
 					{
-						@if ((appt.start_time - DateTime.Now).TotalDays < 2)
-						{
-							<tr class="near-appt">
-								<td>@appt.appointment_id</td>
-								<td>@appt.start_time</td>
-								<td>@appt.end_time</td>
-							</tr>
-						}
-						else
-						{
-							<tr>
-								<td>@appt.appointment_id</td>
-								<td>@appt.start_time</td>
-								<td>@appt.end_time</td>
+											<tr class="@( (appt.start_time - DateTime.Now).TotalDays < 2 ? "near-appt" : "" )">
+												<td>
+													@_currentTrainer.LastName, @_currentTrainer.FirstName
+													<a href="mailto:@_currentTrainer.email">Email</a>
+												</td>
+
+												<td>
+													<input type="datetime-local"
+													value="@appt.start_time.ToString("yyyy-MM-ddTHH:mm")"
+													style="color: black;" />
+												</td>
+
+												<td>
+													<input type="datetime-local"
+													value="@appt.end_time.ToString("yyyy-MM-ddTHH:mm")"
+													style="color: black;" />
+												</td>
 							</tr>
 						}
 					}
 				}
 			</tbody>
 		</table>
+						</div>
 	}
 	else
 	{
@@ -101,14 +198,44 @@ else
 		</div>
 	}
 }
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card">
+			<div class="card-header">Equipment Usage</div>
+			<div class="card-body">
+				<div class="chart-container">
+					<ApexChart @ref="chartEquipment" TItem="EquipmentUsageData" Height="350" Options="optionsEquipment">
+						<ApexPointSeries TItem="EquipmentUsageData"
+						Items="chartEquipmentData"
+						Name="Usage"
+						SeriesType="SeriesType.RadialBar"
+						XValue="@(e => e.Label)"
+						YValue="@(e => e.Value)" />
+					</ApexChart>
+					<p>Equipment:</p>
+					<ul>
+						<li>Weights</li>
+						<li>Rowing</li>
+						<li>Elliptical</li>
+						<li>Treadmill</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 
 
 @code 
 {
 	// Set the required variables for each time the page is loaded:
 	private Query _query;
-	private bool _ready;
+	private bool _ready = false;
+	private bool _validLogin { get; set; } = false;
 	private long executionTime;
+	private bool hideData { get; set; } = true;
 
 	// This parameter receives the client ID from the parent component or route:
 	[Parameter]
@@ -116,18 +243,87 @@ else
 
 	// Create a new user instance with placeholder data:
 	private UserView? _currentUser = new UserView(0, "first", "last", "email");
+	private UserView? _currentTrainer = new UserView(0, "first", "last", "email");
 
 	// This list will store the client's appointment records retrieved from the database:
 	private List<AppointmentEntity> _appointmentList = new List<AppointmentEntity>();
 
+	// Calendars selected date:
+	//private DateTime selectedDate = DateTime.Today;
+
+	// ApexChart instance and data for Heart Rate:
+	private ApexChart<ChartData> chartHR;
+	private List<ChartData> chartDataHR = new();
+
+	// ApexChart instance and data for Calories:
+	private ApexChart<ChartData> chartCalories;
+	private List<ChartData> chartDataCalories = new();
+
+	// ApexChart instance and data for Steps:
+	private ApexChart<ChartData> chartSteps;
+	private List<ChartData> chartDataSteps = new();
+
+	// ApexChart instance and data for Distance:
+	private ApexChart<ChartData> chartDistance;
+	private List<ChartData> chartDataDistance = new();
+
+	// ApexChart instance and data for Equipment Usage:
+	private ApexChart<EquipmentUsageData> chartEquipment;
+	private List<EquipmentUsageData> chartEquipmentData = new();
+
+	// :
+	//private ApexChartOptions<ChartData> optionsStats;
+	private ApexChartOptions<ChartData> optionsHeartRate;
+	private ApexChartOptions<ChartData> optionsCalories;
+	private ApexChartOptions<ChartData> optionsSteps;
+	private ApexChartOptions<ChartData> optionsDistance;
+	private ApexChartOptions<EquipmentUsageData> optionsEquipment;
+
 	// :
 	protected override async Task OnInitializedAsync()
 	{
-		// Set the ready flag to false so the UI can show a loading state if needed:
-		_ready = false;
+		SetupGraphs();
 
 		// Create a new instance of the Query class, which handles database access:
 		_query = new Query(DbContext);
+
+		// Get the current authentication state (contains the current user identity and claims):
+		var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+		// Extract the ClaimsPrincipal representing the current user:
+		var user = authenticationState.User;
+
+		// 1. Check if the user is logged in
+		if (user.Identity is null || !user.Identity.IsAuthenticated)
+		{
+			// Mark login as invalid if not authenticated:
+			_validLogin = false;
+			return;
+		}
+
+		// 2. Get user's client_id via email
+		var email = user.Identity.Name;
+		_currentUser = await _query.AspNetUserToUser(email);
+		var client = _currentUser != null ? await _query.UserToClient(_currentUser.UserID) : null;
+
+		// If no client is found, mark login as invalid and return:
+		if (client == null)
+		{
+			// Stop further processing due to missing client data:
+			_validLogin = false;
+			return;
+		}
+
+		// Extract the actual client ID from the retrieved client:
+		int actualClientID = client.client_id;
+
+		// Retrieve the trainer assigned to the current client:
+		_currentTrainer = await _query.GetAssignedTrainerForClient(actualClientID);
+
+		// 4. Client accessing their own page:
+		if (client_id == actualClientID)
+		{
+			_validLogin = true;
 
 		// Initialize the Stopwatch:
 		System.Diagnostics.Stopwatch stopwatch = null;
@@ -147,7 +343,124 @@ else
 		// Get the elapsed time in milliseconds
 		executionTime = stopwatch.ElapsedMilliseconds;
 
-		// Set the ready flag to true to indicate that data loading is complete:
+			// Set the component to ready state to allow rendering:
 		_ready = true;
+
+			NavigateAway(_validLogin);
+		}
+		else
+		{
+			// 5. Redirect to their own page
+			nav.NavigateTo($"/client/{actualClientID}", true);
+		}
+	}
+
+	private void NavigateAway(bool validLogin)
+	{
+		// Decide whether to show data or redirect based on login validity:
+		if (validLogin)
+		{
+			// All is okay:
+			hideData = !hideData;
+		}
+		else
+		{
+			// User not logged in:
+			// goto login page...
+			nav.NavigateTo("/Account/Login", true);
+		}
+	}
+
+	private void SetupGraphs()
+	{
+		// Theme for the charts:
+		optionsHeartRate = new ApexChartOptions<ChartData>
+		{
+			// Use the Fill property to specify the radial bar’s color
+			Fill = new Fill
+			{
+				Colors = new List<string> { "#FF4560" },
+					Type = FillType.Solid
+			}
+		};
+		optionsCalories = new ApexChartOptions<ChartData>
+		{
+			Fill = new Fill
+			{
+				Colors = new List<string> { "#fcdd5c" },
+				Type = FillType.Solid
+			}
+		};
+		optionsSteps = new ApexChartOptions<ChartData>
+		{
+			Fill = new Fill
+			{
+					Colors = new List<string> { "#47dc87" },
+				Type = FillType.Solid
+			}
+		};
+		optionsDistance = new ApexChartOptions<ChartData>
+		{
+				Fill = new Fill
+				{
+					Colors = new List<string> { "#5879cd" },
+					Type = FillType.Solid
+				}
+		};
+		optionsEquipment = new ApexChartOptions<EquipmentUsageData>
+		{
+			Chart = new Chart
+			{
+				Background = "#000"
+			},
+			Fill = new Fill
+			{
+				Colors = new List<string> { "#FF4560", "#fcdd5c", "#47dc87", "#5879cd" },
+				Type = FillType.Solid,
+			}
+		};
+
+		// Load Equipmant Usage Chart - Heart Rate:
+		var heartRate = Random.Shared.Next(60, 196);
+		float percentageHR = (heartRate / 196f) * 100;
+		chartDataHR.Add(new ChartData { Label = "Heart Rate (b/min)", Value = (int)percentageHR });
+
+		// Load Equipmant Usage Chart - Calories:
+		var burntCalories = Random.Shared.Next(0, 500);
+		float percentageCalories = (burntCalories / 500f) * 100;
+		chartDataCalories.Add(new ChartData { Label = "Burnt Calories (kcal)", Value = (int)percentageCalories });
+
+		// Load Equipmant Usage Chart - Steps:
+		var steps = Random.Shared.Next(300, 2000);
+		float percentageSteps = (steps / 2000f) * 100;
+		chartDataSteps.Add(new ChartData { Label = "Steps", Value = (int)percentageSteps });
+
+		// Load Equipmant Usage Chart - Distance:
+		var distance = Random.Shared.Next(0, 250);
+		float percentageDistance = (distance / 250f) * 100;
+		chartDataDistance.Add(new ChartData { Label = "Distance (miles)", Value = (int)percentageDistance });
+
+		// Load Equipmant Usage Chart:
+		chartEquipmentData.Add(new EquipmentUsageData { Label = "Weights", Value = 15 });
+		chartEquipmentData.Add(new EquipmentUsageData { Label = "Rowing", Value = 20 });
+		chartEquipmentData.Add(new EquipmentUsageData { Label = "Elliptical", Value = 25 });
+		chartEquipmentData.Add(new EquipmentUsageData { Label = "Treadmill", Value = 40 });
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{ }
+
+	// Activity Radial Bar Chart Data:
+	public class ChartData
+	{
+		public string Label { get; set; }
+		public int Value { get; set; }
+	}
+
+	// Equipment Usage Radial Bar Chart Data:
+	public class EquipmentUsageData
+	{
+		public string Label { get; set; }
+		public int Value { get; set; }
 	}
 }

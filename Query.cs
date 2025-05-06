@@ -10,6 +10,32 @@ namespace GymSync {
 	public class Query(ApplicationDbContext context) {
 		private readonly ApplicationDbContext _context = context;
 
+		public async Task<UserView?> GetAssignedTrainerForClient(int clientID) {
+			// Get the current_trainer_id from CLIENT:
+			var trainerID = await _context.CLIENT
+				.Where(c => c.client_id == clientID)
+				.Select(c => c.current_trainer_id)
+				.FirstOrDefaultAsync();
+
+			if (trainerID == 0)
+				return null;
+
+			// Get the corresponding user_id from USER_x_TRAINER:
+			var userID = await _context.USER_x_TRAINER
+				.Where(ut => ut.trainer_id == trainerID)
+				.Select(ut => ut.user_id)
+				.FirstOrDefaultAsync();
+
+			if (userID == 0)
+				return null;
+
+			// Get the UserView from USER:
+			return await _context.USER
+				.Where(u => u.user_id == userID)
+				.AsUserView()
+				.FirstOrDefaultAsync();
+		}
+
 		public async Task<List<UserView>> GetClientsForTrainer(int trainerID) {
 			return await _context.APPOINTMENT_x_TRAINER
 				.Where(at => at.trainer_id == trainerID)
