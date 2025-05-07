@@ -9,6 +9,7 @@
 @using GymSync.Querying
 @using GymSync.Views
 @using Microsoft.EntityFrameworkCore;
+@using System.Diagnostics
 
 
 <link href="Style.css" rel="stylesheet" />
@@ -71,15 +72,15 @@ This page lists the clients for each trainer.
 	else
 	{
 		<div class="row">
-			@foreach (var trainer in _trainers)
+			@foreach (var group in _trainersWithClients)
 			{
-				@if (_trainerUserToClients.TryGetValue(trainer.UserID, out var clients) && clients.Count > 0)
+				@if (group.Elements.Any())
 				{
 					<div class="col-md-4">
 						<div class="card mb-3 trainer-card">
 
 							<div class="trainer-card-header">
-								<h4 class="trainer-card-header-text">Trainer: @trainer.FirstName @trainer.LastName</h4>
+								<h4 class="trainer-card-header-text">Trainer: @group.Key.FirstName @group.Key.LastName</h4>
 							</div>
 
 							<div class="card-body">
@@ -91,7 +92,7 @@ This page lists the clients for each trainer.
 										</tr>
 									</thead>
 									<tbody>
-										@foreach (var client in clients)
+										@foreach (var client in @group.Elements)
 										{
 											<tr>
 												<td>@client.UserID</td>
@@ -114,8 +115,7 @@ This page lists the clients for each trainer.
 	private bool _ready;
 	private long executionTime;
 
-	private List<UserView> _trainers = [];
-	private Dictionary<int, List<UserView>> _trainerUserToClients = [];
+	private List<StaticGroup<UserView, UserView>> _trainersWithClients = [];
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -139,16 +139,8 @@ This page lists the clients for each trainer.
 			stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
 			// Get all trainers with one query rather than individual queries for each trainer
-			_trainers = await _query.TrainerToUserAll();
-
-			// Since the previous query accessed USER_x_TRAINER, accessing it again (via TrainerToUser) here shouldn't incur a database hit in theory
-			// But even if it does, only one field is being accessed, so the performance impact should be minimal
-			foreach (var trainer in await DbContext.TRAINER.Select(t => t.trainer_id).ToListAsync())
-			{
-				var user = await _query.TrainerToUser(trainer);
-				if (user != null)
-					_trainerUserToClients[user.UserID] = await _query.GetClientsForTrainer(trainer);
-			}
+			// WhenAll is used to "block" the code until all tasks are completed
+			await Task.WhenAll(PopulateClientList());
 
 			// Stop the Stopwatch once the query is complete
 			stopwatch.Stop();
@@ -163,6 +155,12 @@ This page lists the clients for each trainer.
 		// Get the elapsed time in milliseconds
 		//executionTime = stopwatch.ElapsedMilliseconds;
 		executionTime = stopwatch.ElapsedMilliseconds;
+	}
+
+	private async Task PopulateClientList() {
+		Debug.Assert(_query is not null);
+
+		_trainersWithClients = await _query.GetClientsForTrainerAll();
 	}
 }
 

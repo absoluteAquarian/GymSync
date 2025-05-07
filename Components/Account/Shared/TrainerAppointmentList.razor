@@ -8,6 +8,7 @@
 @using GymSync.Components;
 @using GymSync.Data;
 @using GymSync.Models;
+@using GymSync.Querying
 @using GymSync.Views;
 @using Microsoft.EntityFrameworkCore;
 @using GymSync.Services;
@@ -175,42 +176,43 @@ This page is for listing all of an individual trainer's upcoming appointments'
 		{
 			_ready = false;
 
-			Query _query = new Query(DbContext);
+			_query = new Query(DbContext);
 
-			if (await _query.TrainerToUser(trainer_id) is UserView user)
-				_currentUser = user;
+			_currentUser = await _query.TrainerToUser(trainer_id).AllowNull();
 
 			//get the clients assigned to the trainer
 			_clientList = await _query.TrainerClientList(trainer_id);
 
-			//add the clients to the user client list
-			foreach (var client in _clientList)
-			{
-				UserView clientUser = await _query.ClientToUser(client.client_id);
-				if (clientUser != null)
-				{
-					_clientUserList.Add(clientUser);	
-				}
+			await GetAndAddPossibleClients();
 
-				//add the client's appointments to the trainer's schedule
-				List<AppointmentEntity> userAppointmentList = new List<AppointmentEntity>();
-				userAppointmentList = await _query.ClientToAppointmentAll(client.client_id);
-
-				if (userAppointmentList != null)
-				{
-					foreach (var appt in userAppointmentList)
-					{
-						AppointmentView appointmentToAdd = new AppointmentView(clientUser.FirstName + " " + clientUser.LastName, appt.start_time, appt.end_time);
-						_appointmentList.Add(appointmentToAdd);
-					}
-				}
-
-			}
+			await Task.WhenAll(GetAndAddPossibleAppointments());  // _appointmentList needs to be populated fully before sorting
 
 			_appointmentList.Sort((s1, s2) => s1.start_time.CompareTo(s2.start_time));
 		}
-		
+
 		_ready = true;
-		
+
+	}
+
+	private async Task GetAndAddPossibleClients() {
+		//add the clients to the user client list
+		foreach (var client in _clientList) {
+			UserView? clientUser;
+
+			using (_query.AcquireLock()) {
+				clientUser = await _query.ClientToUser(client.client_id);
+
+				if (clientUser is not null)
+					_clientUserList.Add(clientUser);
+			}
+		}
+	}
+
+	private async Task GetAndAddPossibleAppointments() {
+		//add the client's appointments to the trainer's schedule
+		foreach (var client in _clientList) {
+			using (_query.AcquireLock())
+				_appointmentList.AddRange(await _query.GetAppointmentsForClient(client.client_id));
+		}
 	}
 }
