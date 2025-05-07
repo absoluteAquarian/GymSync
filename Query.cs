@@ -344,9 +344,9 @@ namespace GymSync {
 		public async Task<List<EquipmentView>> GetEquipmentAll() {
 			return await _context.EQUIPMENT
 				// Resolve the equipment for each reference
-				.MergeWithCrossReferencePrimary(_context.EQUIPMENT_x_ITEM, (e, ei) => new { ei.item_id, e.equipment_id, e.location_name, e.in_use })
+				.MergeWithCrossReferencePrimary(_context.EQUIPMENT_x_ITEM, (e, ei) => new { ei.item_id, e.equipment_id, e.location_name, e.last_maintenance, e.in_use })
 				// Resolve the item for each equipment
-				.AnonymousMergeWhereMatchesKeys(_context.ITEM, anon => anon.item_id, (anon, i) => new EquipmentView(anon.equipment_id, i.item_name, anon.location_name, anon.in_use))
+				.AnonymousMergeWhereMatchesKeys(_context.ITEM, anon => anon.item_id, (anon, i) => new EquipmentView(anon.equipment_id, i.item_name, anon.location_name, anon.last_maintenance, anon.in_use))
 				.ToListAsync();
 		}
 
