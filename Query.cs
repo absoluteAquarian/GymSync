@@ -16,43 +16,6 @@ namespace GymSync {
 		public QueryLock AcquireLock() => _lock.Acquire();
 		#endregion
 
-		public async Task<UserView?> GetAssignedTrainerForClient(int clientID) {
-			// Get the current_trainer_id from CLIENT:
-			var trainerID = await _context.CLIENT
-				.Where(c => c.client_id == clientID)
-				.Select(c => c.current_trainer_id)
-				.FirstOrDefaultAsync();
-
-			if (trainerID == 0)
-				return null;
-
-			// Get the corresponding user_id from USER_x_TRAINER:
-			var userID = await _context.USER_x_TRAINER
-				.Where(ut => ut.trainer_id == trainerID)
-				.Select(ut => ut.user_id)
-				.FirstOrDefaultAsync();
-
-			if (userID == 0)
-				return null;
-
-			// Get the UserView from USER:
-			return await _context.USER
-				.Where(u => u.user_id == userID)
-				.AsUserView()
-				.FirstOrDefaultAsync();
-		}
-
-		public async Task<List<UserView>> GetClientsForTrainer(int trainerID) {
-			return await _context.APPOINTMENT_x_TRAINER
-				.Where(at => at.trainer_id == trainerID)
-				.TransformWhereKeysMatch(_context.APPOINTMENT_x_CLIENT)
-				.FromCrossReferenceForeign(_context.CLIENT)
-				.ToCrossReferenceForeign(_context.USER_x_CLIENT)
-				.FromCrossReferencePrimary(_context.USER)
-				.AsUserView()
-				.ToListAsync();
-		}
-
 		#region User Look-up
 		public async Task<UserEntity?> UserToUser(int userID) {
 			return await _context.USER
@@ -290,6 +253,17 @@ namespace GymSync {
 
 		}
 
+		public async Task<List<UserView>> GetClientsForTrainer(int trainerID) {
+			return await _context.APPOINTMENT_x_TRAINER
+				.Where(at => at.trainer_id == trainerID)
+				.TransformWhereKeysMatch(_context.APPOINTMENT_x_CLIENT)
+				.FromCrossReferenceForeign(_context.CLIENT)
+				.ToCrossReferenceForeign(_context.USER_x_CLIENT)
+				.FromCrossReferencePrimary(_context.USER)
+				.AsUserView()
+				.ToListAsync();
+		}
+
 		public async Task<StaffEntity?> UserToStaff(int userID) {
 			return await _context.USER
 				.Where(u => u.user_id == userID)
@@ -425,6 +399,17 @@ namespace GymSync {
 				.AnonymousMergeWhereMatchesKeys(_context.APPOINTMENT, anon => anon.appointment_id, (anon, a) => new AppointmentView(anon.User.FirstName + " " + anon.User.LastName, a.start_time, a.end_time))
 				.ToListAsync();
 		}
+
+		public async Task<UserView?> GetAssignedTrainerForClient(int clientID) {
+			return await _context.CLIENT
+				.Where(c => c.client_id == clientID)
+				// Resolve the trainer for the client
+				.Select(c => c.current_trainer_id)
+				.AnonymousMergeCrossReferenceForeign(_context.USER_x_TRAINER, c => c, (c, ut) => ut)
+				.FromCrossReferencePrimary(_context.USER)
+				.AsUserView()
+				.FirstOrDefaultAsync();
+		}
 		#endregion
 	}
 
@@ -464,6 +449,11 @@ namespace GymSync {
 		public static IQueryable<TAnonymous> AnonymousWhereMatchesKeys<TAnonymous, TTo>(this IQueryable<TAnonymous> query, IQueryable<TTo> to, Expression<Func<TAnonymous, int>> anonymousKeySelector)
 		where TTo : IQueryKeyable<TTo, int> {
 			return query.Join(to, anonymousKeySelector, TTo.GetPrimaryKey(), (q, _) => q);
+		}
+
+		public static IQueryable<TAnonymous> AnonymousWhereMatchesForeignKeys<TAnonymous, TCross>(this IQueryable<TAnonymous> query, IQueryable<TCross> cross, Expression<Func<TAnonymous, int>> anonymousKeySelector)
+		where TCross : ICrossReference<TCross> {
+			return query.Join(cross, anonymousKeySelector, TCross.GetForeignKey(), (q, _) => q);
 		}
 
 		public static IQueryable<UserView> AsUserView(this IQueryable<UserEntity> query) {
