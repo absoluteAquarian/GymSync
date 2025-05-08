@@ -1,7 +1,177 @@
-﻿@page "/user-maintenance"
+﻿@inject ApplicationDbContext dbContext;
+@inject UserSessionService UserSession;
+
+@page "/user-maintenance"
+
+@using GymSync.Data;
+@using GymSync.Models;
+@using GymSync.Services;
 
 <h3>UserMaintenance</h3>
 
-@code {
+@if (!UserSession.IsLoggedIn)
+{
+	<h1>You must be logged in to view this page</h1>
+}
+else if (!_ready)
+{
+	<p> Loading page</p>
+}
+else
+{
+	//create dropdown box for selecting user to maintain
+	<select @onchange="OnUserSelected" class="form-select">
+		<option value="">--Select User--</option>
+		@foreach (var user in allUsers)
+		{
+			<option value="@user.user_id">@user.firstName @user.lastName</option>	
+		}
+	</select>
 
+	@if (selectedUser != null)
+	{
+		<div class="user-maintenance-view">
+			<h4>Details for: @selectedUser.firstName @selectedUser.lastName</h4>
+			<p>User Id: @selectedUser.user_id</p>
+			<p>Email: @selectedUser.email</p>
+
+			@*Table for showing rows and adding assignment/removal operations*@
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Role</th>
+						<th>Assigned</th>
+						<th>Add Role</th>
+						<th>Remove Role</th>
+
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Client</td>
+						@if(@isClient){
+							<td>YES</td>
+							<td></td>
+							<td>Remove</td>
+						}
+						else
+						{
+							<td>NO</td>
+							<td>Add</td>
+							<td></td>
+						}
+					</tr>
+					<tr>
+						<td>Trainer</td>
+						@if (@isTrainer)
+						{
+							<td>YES</td>
+							<td></td>
+							<td>Remove</td>
+						}
+						else
+						{
+							<td>NO</td>
+							<td>Add</td>
+							<td></td>
+						}
+					</tr>
+					<tr>
+						<td>Staff/Admin</td>
+						@if (@isStaff)
+						{
+							<td>YES</td>
+							<td></td>
+							<td>Remove</td>
+						}
+						else
+						{
+							<td>NO</td>
+							<td>Add</td>
+							<td></td>
+						}
+					</tr>
+				</tbody>
+			</table>
+		</div>	
+	}
+
+}
+
+@code {
+	Query _query;
+
+	private bool _ready;
+	private bool _userSelect; 
+
+	//list of all users for the drop down
+	private List<UserEntity> allUsers = [];
+
+	//information for selected user
+	private int? selectedUserId;
+	private UserEntity? selectedUser;
+	private bool isClient;
+	private bool isTrainer;
+	private bool isStaff;
+
+
+	//on page iniialization
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+
+		_query = new Query(dbContext);
+
+		allUsers = await _query.GetAllUsers();
+
+		_ready = true;
+	}
+
+	private async Task OnUserSelected(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value?.ToString(), out int userId))
+		{
+			selectedUserId = userId;
+			selectedUser = allUsers.FirstOrDefault(u => u.user_id == selectedUserId);
+			await LoadRoleAssignments(userId);
+		}
+	}
+
+	private async Task LoadRoleAssignments(int userId)
+	{
+		var roles = await _query.GetUserRolesForUser(userId);
+		if (roles != null)
+		{
+			if (roles.Trainer != null)
+			{
+				isTrainer = true;
+			}
+			else
+			{
+				isTrainer = false;	
+			}
+
+			if (roles.Client != null)
+			{
+				isClient = true;
+			}
+			else
+			{
+				isClient = false;
+			}
+
+			if (roles.Staff != null)
+			{
+				isStaff = true;
+			}
+			else
+			{
+				isStaff = false;
+			}
+		}
+	}
+
+
+
+	
 }

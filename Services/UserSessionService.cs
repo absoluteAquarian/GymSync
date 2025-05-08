@@ -3,8 +3,8 @@
 		//reference for user ids across the site
 		public int? UserID { get; set; }
 		public int? ClientID {get; set;}
-		public int TrainerID { get; set; }
-		public int StaffID { get; set; }
+		public int? TrainerID { get; set; }
+		public int? StaffID { get; set; }
 
 		//credentials to determine what the user should have access to
 		public bool IsUser { get; set; }
@@ -12,6 +12,9 @@
 		public bool IsTrainer { get; set; }
 
 		public bool IsStaff { get; set; }
+
+		//check if logged in
+		public bool IsLoggedIn { get; set; }
 
 	}
 }
