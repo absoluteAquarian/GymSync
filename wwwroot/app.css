@@ -189,6 +189,16 @@ h1:focus {
     padding: 2px 0;
 }
 
+.custom-dropdown {
+    color: black;
+    background-color:white;
+}
+
+select option{
+    color: black;
+    background-color: white;
+}
+
 
 
 

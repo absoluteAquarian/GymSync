@@ -20,7 +20,7 @@ else if (!_ready)
 else
 {
 	//create dropdown box for selecting user to maintain
-	<select @onchange="OnUserSelected" class="form-select">
+	<select @onchange="OnUserSelected" class="form-select custom-dropdown" style="color: black">
 		<option value="">--Select User--</option>
 		@foreach (var user in allUsers)
 		{
@@ -49,17 +49,19 @@ else
 				<tbody>
 					<tr>
 						<td>Client</td>
-						@if(@isClient){
-							<td>YES</td>
-							<td></td>
-							<td>Remove</td>
-						}
-						else
-						{
-							<td>NO</td>
-							<td>Add</td>
-							<td></td>
-						}
+						<td>@(isClient ? "YES" : "NO")</td>
+						<td>
+							@if (!isClient)
+							{
+								<button class="btn btn-sm btn-success" @onclick="AssignClientRole">Add</button>	
+							}
+						</td>
+						<td>
+							@if (isClient)
+							{
+								<button class="btn btn-sm btn-success" @onclick="RemoveClientRole">Add</button>
+							}
+						</td>
 					</tr>
 					<tr>
 						<td>Trainer</td>
@@ -142,33 +144,20 @@ else
 		var roles = await _query.GetUserRolesForUser(userId);
 		if (roles != null)
 		{
-			if (roles.Trainer != null)
-			{
-				isTrainer = true;
-			}
-			else
-			{
-				isTrainer = false;	
-			}
-
-			if (roles.Client != null)
-			{
-				isClient = true;
-			}
-			else
-			{
-				isClient = false;
-			}
-
-			if (roles.Staff != null)
-			{
-				isStaff = true;
-			}
-			else
-			{
-				isStaff = false;
-			}
+			isTrainer = roles.Trainer != null;
+			isClient = roles.Client != null;
+			isStaff = roles.Staff != null;
 		}
+	}
+
+	private void AssignClientRole()
+	{
+		
+	}
+
+	private void RemoveClientRole()
+	{
+
 	}
 
 
