@@ -315,6 +315,11 @@ namespace GymSync {
 				.ToListAsync();
 		}
 
+		public async Task<List<User_x_TrainerEntity>> GetAllUsersXTrainer() {
+			return await _context.USER_x_TRAINER
+				.ToListAsync();
+		}
+
 		//ASP user lookup
 		public async Task<UserView?> AspNetUserToUser(string Email) {
 			return await _context.USER
