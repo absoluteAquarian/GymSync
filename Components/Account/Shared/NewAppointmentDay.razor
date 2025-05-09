@@ -140,7 +140,7 @@ else{
 
 				//add the client's appointments to the trainer's schedule
 				List<AppointmentEntity> userAppointmentList = new List<AppointmentEntity>();
-				userAppointmentList = await _query.ClientToAppointmentAll(client.client_id);
+				userAppointmentList = await _query.ClientToAppointmentAll(trainerClient.client_id);
 				List<AppointmentEntity> appointmentsToAdd = [];
 				appointmentsToAdd = userAppointmentList
 					.Where(appt => appt.start_time.Date == parsedDate.Date)
@@ -149,7 +149,7 @@ else{
 
 				if (appointmentsToAdd != null)
 				{
-					foreach (var appt in userAppointmentList)
+					foreach (var appt in appointmentsToAdd)
 					{
 						trainerAppointments.Add(appt);
 					}
