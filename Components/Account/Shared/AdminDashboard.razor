@@ -18,8 +18,38 @@ else
 	<p>Welcome to the admin dashboard!</p>
 
 	<button @onclick="()=>LinkToUserAdmin()">Go To User Admin</button>
-	<button @onclick="()=> LinkToEquipmentAdmin()">Go To Equipement Management</button>
+	<button @onclick="()=> LinkToEquipmentAdmin()">Go To Equipment Management</button>
 	<button @onclick="()=> LinkToStaffJobListing()">Go To Staff Job Listing</button>
+
+	<div class="user-cards">
+
+		@foreach (var user in Users)
+
+		{
+
+			<div class="user-card">
+
+				<div class="user-image" style="background-image: url('@user.Image');"></div>
+
+				<div class="user-name">@user.Name (ID: @user.Id)</div>
+
+				<select @bind="user.Role">
+
+					<option>Client</option>
+
+					<option>Trainer</option>
+
+					<option>Staff</option>
+
+				</select>
+
+				<button @onclick="() => UpdateRole(user)">Update Role</button>
+
+			</div>
+
+		}
+
+	</div>
 }
 
 
@@ -28,7 +58,52 @@ else
 
 @code {
 
+	public class UserModel
 
+	{
+
+		public int Id { get; set; }
+
+		public string Name { get; set; } = "";
+
+		public string Role { get; set; } = "Client";
+
+		public string Image { get; set; } = "";
+
+	}
+
+	private List<UserModel> Users = new()
+
+	{
+
+		new() { Id = 1, Name = "John Doe", Role = "Client", Image = "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg" },
+
+		new() { Id = 2, Name = "Jane Smith", Role = "Trainer", Image = "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg" },
+
+		new() { Id = 3, Name = "Mike Johnson", Role = "Staff", Image = "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg" },
+
+		new() { Id = 4, Name = "Sophia Lee", Role = "Client", Image = "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg" },
+
+		new() { Id = 5, Name = "Liam Carter", Role = "Trainer", Image = "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg" },
+
+		new() { Id = 6, Name = "Emma Brooks", Role = "Staff", Image = "https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg" },
+
+		new() { Id = 7, Name = "Olivia Scott", Role = "Client", Image = "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg" },
+
+		new() { Id = 8, Name = "Noah Davis", Role = "Trainer", Image = "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg" },
+
+	};
+
+	private void UpdateRole(UserModel user)
+
+	{
+
+		Console.WriteLine($"Updated role for {user.Name} to {user.Role}");
+
+	}
+	
+	
+	
 	private void LinkToUserAdmin()
 	{
 		Navigation.NavigateTo($"/user-maintenance");
@@ -43,4 +118,7 @@ else
 	{
 		Navigation.NavigateTo($"/staff-job-list/{UserSession.StaffID}");	
 	}
+
+
+
 }

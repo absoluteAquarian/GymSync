@@ -1,11 +1,14 @@
 ﻿@inject ApplicationDbContext DbContext;
+@inject UserSessionService UserSession;
 
 @page "/equipment-availability"
 
 @using GymSync.Data;
 @using GymSync.Models;
+@using GymSync.Services;
 @using GymSync.Views;
 @using GymSync.Components;
+@using MySqlConnector;
 @using Microsoft.EntityFrameworkCore;
 
 
@@ -60,9 +63,15 @@ else
 			<tr>
 				<th>Equipment Id</th>
 				<th>Equipment Name</th>
-				<th>Location</th>
-				<th>Last Maintenance</th>
+				<th>Location</th>				
 				<th>In Use</th>
+				<th>Mark Status</th>
+				<th>Last Maintenance</th>
+				@if (UserSession.IsStaff)
+				{
+					<th>Mx Complete</th>
+				}
+
 			</tr>
 		</thead>
 
@@ -73,16 +82,10 @@ else
 					<td>@gymEquipment.EquipmentID</td>
 					<td>@gymEquipment.Name</td>
 					<td>@gymEquipment.Location</td>
-					@if (gymEquipment.LastMaintenance < DateTime.Now.AddHours(-24))
-					{
-						<td class="td-inuse">@gymEquipment.LastMaintenance</td>
-					}
-					else
-					{
-						<td class="td-notinuse">@gymEquipment.LastMaintenance</td>
-					}
+					<td>
+						<button @onclick="()=>UpdateEquipmentUseStatus(gymEquipment.EquipmentID)"></button>
+					</td>
 
-					
 					@if (gymEquipment.InUse)
 					{
 						<td class="td-inuse">In Use</td>
@@ -92,17 +95,47 @@ else
 						<td class="td-notinuse">Open</td>
 					}
 
+					@if (gymEquipment.LastMaintenance < DateTime.Now.AddHours(-24))
+					{
+						<td class="td-inuse">@gymEquipment.LastMaintenance</td>
+					}
+					else
+					{
+						<td class="td-notinuse">@gymEquipment.LastMaintenance</td>
+					}
+
+					@if (UserSession.IsStaff)
+					{
+						<td>
+							<button @onclick="()=>CompleteMaintenance(gymEquipment.EquipmentID)">Done</button>
+						</td>
+					}
+
+
+
+
+
 
 				</tr>
 			}
 		</tbody>
 
 	</table>
+	<p>@inUseStatusMessage</p>
+
+	@if (UserSession.IsStaff)
+	{
+		<p>@maintenanceMessage</p>	
+	}
 }
 
 @code {
 	private Query _query;
 	private bool _ready;
+
+	//message for equipment updates
+	private string maintenanceMessage = "No message update";
+	private string inUseStatusMessage = "No status update";
 
 	private List<EquipmentView> _gymEquipmentList = [];
 
@@ -116,6 +149,44 @@ else
 		_gymEquipmentList = await _query.GetEquipmentAll();
 
 		_ready = true;
+	}
+
+	private async Task CompleteMaintenance(int id)
+	{
+
+		try
+		{
+			var idParam = new MySqlParameter("@equipmentId", id);
+
+			await DbContext.Database.ExecuteSqlRawAsync("CALL maintenance_complete(@equipmentId)", idParam);
+			maintenanceMessage = "Maintenance status updated";
+
+			_gymEquipmentList = await _query.GetEquipmentAll();
+
+		}
+		catch(Exception ex)
+		{
+			maintenanceMessage = $"Failed to update: {ex.Message}";
+		}
+
+
+	}
+
+	private async Task UpdateEquipmentUseStatus(int id)
+	{
+		try
+		{
+			var equipIdParam = new MySqlParameter("@equipId", id);
+			await DbContext.Database.ExecuteSqlRawAsync("CALL update_equipment_use_status(@equipId)", equipIdParam);
+			inUseStatusMessage = "Equipment status updated";
+
+			_gymEquipmentList = await _query.GetEquipmentAll();
+
+		}
+		catch (Exception ex)
+		{
+			inUseStatusMessage = $"Failed to update status: {ex.Message}";
+		}
 	}
 
 }

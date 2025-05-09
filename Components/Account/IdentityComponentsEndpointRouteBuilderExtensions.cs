@@ -1,6 +1,7 @@
 using GymSync.Components.Account.Pages;
 using GymSync.Components.Account.Pages.Manage;
 using GymSync.Data;
+using GymSync.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -43,10 +44,21 @@ namespace Microsoft.AspNetCore.Routing
             accountGroup.MapPost("/Logout", async (
                 ClaimsPrincipal user,
                 SignInManager<ApplicationUser> signInManager,
+				UserSessionService userSession,
                 [FromForm] string returnUrl) =>
             {
                 await signInManager.SignOutAsync();
-                return TypedResults.LocalRedirect($"~/{returnUrl}");
+
+				userSession.ClientID = null;
+				userSession.TrainerID = null;
+				userSession.StaffID = null;
+				userSession.UserID = null;
+				userSession.IsClient = false;
+				userSession.IsUser = false;
+				userSession.IsTrainer = false;
+				userSession.IsStaff = false;
+				userSession.IsLoggedIn = false;
+                return TypedResults.LocalRedirect("/Account/Login");
             });
 
             var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();

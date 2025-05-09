@@ -1,7 +1,325 @@
-﻿@page "/user-maintenance"
+﻿@inject ApplicationDbContext dbContext;
+@inject UserSessionService UserSession;
+
+@page "/user-maintenance"
+
+@using GymSync.Data;
+@using GymSync.Models;
+@using GymSync.Services;
+@using Microsoft.EntityFrameworkCore;
+@using MySqlConnector;
+
 
 <h3>UserMaintenance</h3>
 
-@code {
+@if (!UserSession.IsLoggedIn)
+{
+	<h1>You must be logged in to view this page</h1>
+}
+else if (!_ready)
+{
+	<p> Loading page</p>
+}
+else
+{
+	//create dropdown box for selecting user to maintain
+	<select @onchange="OnUserSelected" class="form-select custom-dropdown" style="color: black">
+		<option value="">--Select User--</option>
+		@foreach (var user in allUsers)
+		{
+			<option value="@user.user_id">@user.firstName @user.lastName</option>	
+		}
+	</select>
 
+	@if (selectedUser != null)
+	{
+		<div class="user-maintenance-view">
+			<h4>Details for: @selectedUser.firstName @selectedUser.lastName</h4>
+			<p>User Id: @selectedUser.user_id</p>
+			<p>Email: @selectedUser.email</p>
+
+			@*Table for showing rows and adding assignment/removal operations*@
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Role</th>
+						<th>Assigned</th>
+						<th>Add Role</th>
+						<th>Remove Role</th>
+
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Client</td>
+						<td>@(isClient ? "YES" : "NO")</td>
+						<td>
+							@if (!isClient)
+							{
+								<button class="btn btn-sm btn-success" @onclick="AssignClientRole">Add</button>	
+							}
+						</td>
+						<td>
+							@if (isClient)
+							{
+								<button class="btn btn-sm btn-success" @onclick="RemoveClientRole">Remove</button>
+							}
+						</td>
+					</tr>
+					<tr>
+						<td>Trainer</td>
+						<td>@(isTrainer ? "YES" : "NO")</td>
+						<td>
+							@if (!isTrainer)
+							{
+								<button class="btn btn-sm btn-success" @onclick="AssignTrainerRole">Add</button>
+							}
+						</td>
+						<td>
+							@if (isTrainer)
+							{
+								<button class="btn btn-sm btn-success" @onclick="RemoveTrainerRole">Remove</button>
+							}
+						</td>
+
+					</tr>
+					<tr>
+						<td>Staff/Admin</td>
+						<td>@(isStaff ? "YES" : "NO")</td>
+						<td>
+							@if (!isStaff)
+							{
+								<button class="btn btn-sm btn-success" @onclick="AssignStaffRole">Add</button>
+							}
+						</td>
+						<td>
+							@if (isStaff)
+							{
+								<button class="btn btn-sm btn-success" @onclick="RemoveStaffRole">Remove</button>
+							}
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div>
+				<h3>If adding client, select trainer id to assign:</h3>
+
+				<select @onchange="OnTrainerSelected" class="form-select custom-dropdown" style="color: black">
+					<option value="">--Select Trainer--</option>
+					@foreach (var trainer in trainers)
+					{
+						<option value="@trainer.trainer_id">@trainer.trainer_id</option>
+					}
+				</select>
+
+			</div>
+
+			<div>
+				<p>@changeString</p>
+			</div>
+		</div>	
+	}
+
+}
+
+@code {
+	Query _query;
+
+	private bool _ready;
+	private bool _userSelect; 
+
+	//list of all users for the drop down
+	private List<UserEntity> allUsers = [];
+
+	//list of trainers for assigning a client
+	private List<User_x_TrainerEntity> trainers = [];
+
+	//information for selected user
+	private int? selectedUserId;
+	private UserEntity? selectedUser;
+	private bool isClient;
+	private bool isTrainer;
+	private bool isStaff;
+
+	//information for selected trainer
+	private int? selectedTrainerId;
+
+	//string to display on change
+	private string changeString = "No changes made";
+
+	//on page iniialization
+	protected override async Task OnInitializedAsync()
+	{
+		_ready = false;
+
+		_query = new Query(dbContext);
+
+		allUsers = await _query.GetAllUsers();
+		trainers = await _query.GetAllUsersXTrainer();
+
+		_ready = true;
+	}
+
+	private async Task OnUserSelected(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value?.ToString(), out int userId))
+		{
+			selectedUserId = userId;
+			selectedUser = allUsers.FirstOrDefault(u => u.user_id == selectedUserId);
+			await LoadRoleAssignments(userId);
+		}
+	}
+
+	private void OnTrainerSelected(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value?.ToString(), out int trainerId))
+		{
+			selectedTrainerId = trainerId;
+		}
+	}
+
+
+	private async Task LoadRoleAssignments(int userId)
+	{
+		var roles = await _query.GetUserRolesForUser(userId);
+		if (roles != null)
+		{
+			isTrainer = roles.Trainer != null;
+			isClient = roles.Client != null;
+			isStaff = roles.Staff != null;
+		}
+	}
+
+	private async Task AssignClientRole()
+	{
+		//needs to have user id and trainer id to assign
+		try
+		{
+			var userParam = new MySqlParameter("@userId", selectedUserId);
+			var trainerParam = new MySqlParameter("@trainerId", selectedTrainerId);
+
+			await dbContext.Database.ExecuteSqlRawAsync("CALL assign_to_client(@userId, @trainerId)", userParam, trainerParam);
+			changeString = "Client role assigned successfully";
+
+			if (selectedUserId != null)
+			{
+				await LoadRoleAssignments((int)selectedUserId);
+			}
+		}
+		catch (Exception ex)
+		{
+			changeString = $"Failed to assign role: {ex.Message}";
+		}
+
+
+	}
+
+	private async Task RemoveClientRole()
+	{
+		try
+		{
+			var userParam = new MySqlParameter("@userId", selectedUserId);
+
+			await dbContext.Database.ExecuteSqlRawAsync("CALL remove_from_client(@userId)", userParam);
+			changeString = "Successfully removed client role";
+
+			if (selectedUserId != null)
+			{
+				await LoadRoleAssignments((int)selectedUserId);
+			}
+		}
+		catch (Exception ex)
+		{
+			changeString = $"Failed to remove client role: {ex.Message}";
+		}
+	}
+
+	private async Task AssignStaffRole()
+	{
+		try
+		{
+			var userParam = new MySqlParameter("@userId", selectedUserId);
+
+			await dbContext.Database.ExecuteSqlRawAsync("CALL assign_to_staff(@userId)", userParam);
+			changeString = "Staff role assigned successfully";
+
+			if (selectedUserId != null)
+			{
+				await LoadRoleAssignments((int)selectedUserId);
+			}
+		}
+		catch (Exception ex)
+		{
+			changeString = $"Failed to assign role: {ex.Message}";
+		}
+	}
+
+	private async Task RemoveStaffRole()
+	{
+		try
+		{
+			var userParam = new MySqlParameter("@userId", selectedUserId);
+
+			await dbContext.Database.ExecuteSqlRawAsync("CALL remove_from_staff(@userId)", userParam);
+			changeString = "Successfully removed staff role";
+
+
+			if (selectedUserId != null)
+			{
+				await LoadRoleAssignments((int)selectedUserId);
+			}
+		}
+		catch (Exception ex)
+		{
+			changeString = $"Failed to remove trainer role: {ex.Message}";
+		}
+	}
+
+	private async Task AssignTrainerRole()
+	{
+
+		try
+		{
+			var userParam = new MySqlParameter("@userId", selectedUserId);
+
+			await dbContext.Database.ExecuteSqlRawAsync("CALL assign_to_trainer(@userId)", userParam);
+			changeString = "Trainer role assigned successfully";
+
+			if (selectedUserId != null)
+			{
+				await LoadRoleAssignments((int)selectedUserId);
+			}
+		}
+		catch (Exception ex)
+		{
+			changeString = $"Failed to assign role: {ex.Message}";
+		}
+	}
+
+	private async Task RemoveTrainerRole()
+	{
+
+		try
+		{
+			var userParam = new MySqlParameter("@userId", selectedUserId);
+
+			await dbContext.Database.ExecuteSqlRawAsync("CALL remove_from_trainer(@userId)", userParam);
+			changeString = "Successfully removed trainer role";
+
+
+			if (selectedUserId != null)
+			{
+				await LoadRoleAssignments((int)selectedUserId);
+			}
+		}
+		catch (Exception ex)
+		{
+			changeString = $"Failed to remove trainer role: {ex.Message}";
+		}
+	}
+
+
+
+	
 }

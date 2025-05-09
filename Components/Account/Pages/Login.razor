@@ -137,6 +137,7 @@
             UserView user = await _query.AspNetUserToUser(Input.Email);
 
             _userSession.UserID = user.UserID;
+            _userSession.IsLoggedIn = true;
 
             Logger.LogInformation("User logged in.");
             NavigationManager.NavigateTo($"/dashboard/{ user.UserID}");
