@@ -32,7 +32,9 @@
 
 			@foreach(var appt in _appointmentList)
 			{
-				if((appt.start_time - DateTime.Now).TotalDays < 2)
+				if ((appt.start_time - DateTime.Now).TotalDays < 0)
+				{ }
+				else if((appt.start_time - DateTime.Now).TotalDays < 2)
 				{
 					<tr class="near-appt">
 						<td>@appt.appointment_id</td>
