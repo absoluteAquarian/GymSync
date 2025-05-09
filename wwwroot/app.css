@@ -199,6 +199,96 @@ select option{
     background-color: white;
 }
 
+/*CSS for person cards*/
+.admin-header {
+    text-align: center;
+    color: #5CE1E6;
+    font-size: 2.5em;
+    margin-bottom: 30px;
+    font-family: 'Archivo', sans-serif;
+}
+
+
+
+.user-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 30px;
+    padding: 0 20px;
+}
+
+
+
+.user-card {
+    background-color: #111111;
+    border: 1px solid #5CE1E6;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s ease;
+    box-shadow: 0 8px 18px rgba(92, 225, 230, 0.15);
+    font-family: 'Archivo', sans-serif;
+}
+
+
+
+    .user-card:hover {
+        transform: translateY(-6px);
+    }
+
+
+
+.user-image {
+    width: 120px;
+    height: 120px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 50%;
+    filter: grayscale(100%);
+    margin: 0 auto 15px;
+    border: 3px solid #5CE1E6;
+}
+
+
+
+.user-name {
+    font-weight: bold;
+    color: #5CE1E6;
+    margin-bottom: 12px;
+}
+
+
+
+select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background-color: #5CE1E6;
+    color: #000000;
+    font-weight: bold;
+    border: none;
+    margin-bottom: 10px;
+    width: 80%;
+}
+
+
+
+button {
+    background-color: #5CE1E6;
+    color: #000000;
+    font-weight: bold;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+
+
+    button:hover {
+        background-color: #40c7ce;
+    }
+
 
 
 
