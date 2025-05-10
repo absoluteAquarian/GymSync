@@ -82,9 +82,7 @@ else
 					<td>@gymEquipment.EquipmentID</td>
 					<td>@gymEquipment.Name</td>
 					<td>@gymEquipment.Location</td>
-					<td>
-						<button @onclick="()=>UpdateEquipmentUseStatus(gymEquipment.EquipmentID)"></button>
-					</td>
+					
 
 					@if (gymEquipment.InUse)
 					{
@@ -94,6 +92,10 @@ else
 					{
 						<td class="td-notinuse">Open</td>
 					}
+
+					<td>
+						<button @onclick="()=>UpdateEquipmentUseStatus(gymEquipment.EquipmentID)">Check In/Out</button>
+					</td>
 
 					@if (gymEquipment.LastMaintenance < DateTime.Now.AddHours(-24))
 					{
