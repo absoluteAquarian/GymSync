@@ -66,9 +66,10 @@ else
 				<th>Location</th>				
 				<th>In Use</th>
 				<th>Mark Status</th>
-				<th>Last Maintenance</th>
+				
 				@if (UserSession.IsStaff)
 				{
+					<th>Last Maintenance</th>
 					<th>Mx Complete</th>
 				}
 
@@ -97,17 +98,17 @@ else
 						<button @onclick="()=>UpdateEquipmentUseStatus(gymEquipment.EquipmentID)">Check In/Out</button>
 					</td>
 
-					@if (gymEquipment.LastMaintenance < DateTime.Now.AddHours(-24))
+					@if(UserSession.IsStaff)
 					{
-						<td class="td-inuse">@gymEquipment.LastMaintenance</td>
-					}
-					else
-					{
-						<td class="td-notinuse">@gymEquipment.LastMaintenance</td>
-					}
-
-					@if (UserSession.IsStaff)
-					{
+						@if (gymEquipment.LastMaintenance < DateTime.Now.AddHours(-24))
+						{
+							<td class="td-inuse">@gymEquipment.LastMaintenance</td>
+						}
+						else
+						{
+							<td class="td-notinuse">@gymEquipment.LastMaintenance</td>
+						}
+										
 						<td>
 							<button @onclick="()=>CompleteMaintenance(gymEquipment.EquipmentID)">Done</button>
 						</td>
