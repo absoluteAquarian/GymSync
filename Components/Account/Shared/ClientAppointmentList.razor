@@ -9,6 +9,7 @@
 @using GymSync.Views;
 @using GymSync.Services;
 @using Microsoft.EntityFrameworkCore;
+@using MySqlConnector;
 
 
 <body>
@@ -35,6 +36,7 @@
 					<th>Appt Id</th>
 					<th> Start Day/Time</th>
 					<th>End Day/Time</th>
+					<th>Cancel</th>
 				</tr>
 			</thead>
 
@@ -48,6 +50,7 @@
 						<td>@appt.appointment_id</td>
 						<td>@appt.start_time</td>
 						<td>@appt.end_time</td>
+						<button @onclick="()=>CancelAppointment(appt.appointment_id)">Cancel</button>
 					</tr>
 				}
 				else
@@ -56,14 +59,17 @@
 						<td>@appt.appointment_id</td>
 						<td>@appt.start_time</td>
 						<td>@appt.end_time</td>
+						<button @onclick="()=>CancelAppointment(appt.appointment_id)">Cancel</button>
 					</tr>					
 				}
+				
 
 			}
 		</table>
 
 		@*<p>Sign up for a new appointment <a a href=@($"/appointment_signup/{_client_id}")>here</a></p>*@
 		<button @onclick="()=>LinkToNewAppointment()">New Appointment</button>
+		<p>@pageMessage</p>
 	}
 
 </body>
@@ -78,6 +84,8 @@
 
 	private UserView _currentUser = new UserView(0, "first", "last", "email");
 	private List<AppointmentEntity> _appointmentList = [];
+
+	private string pageMessage = "No current updates";
 
 
 	protected override async Task OnInitializedAsync()
@@ -110,5 +118,23 @@
 	private void LinkToEquipmentStatus()
 	{
 		Navigation.NavigateTo($"/equipment-availability");
+	}
+
+	private async Task CancelAppointment(int appt_id)
+	{
+		try
+		{
+			var apptIdParam = new MySqlParameter("@apptId", appt_id);
+
+			await _dbContext.Database.ExecuteSqlRawAsync("CALL cancel_appointment(@apptId)", apptIdParam);
+			pageMessage = "Appointment successfully canceled";
+
+			_appointmentList = (await _query.ClientToAppointmentAll(_client_id)).OrderBy(appt => appt.start_time).ToList();
+
+		}
+		catch (Exception ex)
+		{
+			pageMessage = $"Unable to cancel appointment: {ex.Message}";
+		}
 	}
 }
