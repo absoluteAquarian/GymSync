@@ -13,7 +13,7 @@ RUN dotnet restore "GymSync.csproj"
 
 # Copy everything and publish
 COPY . .
-RUN dotnet publish "GymSync.csproj" -c Release -o /app/publish --verbosity diagnostic
+RUN dotnet publish "GymSync.csproj" -c Release -o /app/publish
 
 # Final stage
 FROM base AS final
