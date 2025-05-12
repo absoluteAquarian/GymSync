@@ -282,7 +282,7 @@ button {
     cursor: pointer;
     transition: background-color 0.2s ease;
     margin: 5px;
-    
+
 }
 
 
@@ -290,8 +290,6 @@ button {
     button:hover {
         background-color: #40c7ce;
     }
-
-
 
 
 

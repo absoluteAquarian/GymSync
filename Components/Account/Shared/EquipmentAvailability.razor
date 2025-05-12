@@ -1,6 +1,7 @@
-﻿@inject ApplicationDbContext DbContext;
+@inject ApplicationDbContext DbContext;
 @inject UserSessionService UserSession;
 @inject NavigationManager Navigation;
+
 
 @page "/equipment-availability"
 
@@ -96,12 +97,13 @@ else
 
 
 					@if (gymEquipment.InUse)
+
 					{
-						<td class="td-inuse">In Use</td>
+						<td class="td-inuse">@gymEquipment.LastMaintenance</td>
 					}
 					else
 					{
-						<td class="td-notinuse">Open</td>
+						<td class="td-notinuse">@gymEquipment.LastMaintenance</td>
 					}
 
 					<td>
@@ -201,6 +203,7 @@ else
 			inUseStatusMessage = $"Failed to update status: {ex.Message}";
 		}
 	}
+
 
 	private void LinkToClientDashboard()
 	{

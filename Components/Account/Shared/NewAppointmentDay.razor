@@ -132,11 +132,11 @@ else{
 			//get trainer's appointments
 			foreach (var trainerClient in clients)
 			{
-				UserView clientUser = await _query.ClientToUser(trainerClient.client_id);
+				/*UserView clientUser = await _query.ClientToUser(trainerClient.client_id);
 				if (clientUser != null)
 				{
 					_clientUserList.Add(clientUser);
-				}
+				}*/
 
 				//add the client's appointments to the trainer's schedule
 				List<AppointmentEntity> userAppointmentList = new List<AppointmentEntity>();
