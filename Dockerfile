@@ -8,15 +8,15 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR .
 
 # Copy csproj and restore
-COPY ["Gymsync.csproj", "./"]
-RUN dotnet restore "Gymsync.csproj"
+COPY ["GymSync.csproj", "./"]
+RUN dotnet restore "GymSync.csproj"
 
 # Copy everything and publish
 COPY . .
-RUN dotnet publish "Gymsync.csproj" -c Release -o /publish
+RUN dotnet publish "GymSync.csproj" -c Release -o /publish
 
 # Final stage
 FROM base AS final
 WORKDIR /app
 COPY --from=build /publish .
-ENTRYPOINT ["dotnet", "Gymsync.dll"]
+ENTRYPOINT ["dotnet", "GymSync.dll"]
