@@ -1,5 +1,9 @@
-﻿# Use the pre-built image from Docker Hub (existing image)
-FROM ${{ secrets.DOCKERHUB_USERNAME }}/gymsync:latest
+﻿# Define build argument for image name
+ARG DOCKERHUB_USERNAME
+ARG IMAGE_TAG
+
+# Use the pre-built image from Docker Hub (existing image)
+FROM ${DOCKERHUB_USERNAME}/gymsync:${IMAGE_TAG}
 
 # Set the working directory
 WORKDIR /app

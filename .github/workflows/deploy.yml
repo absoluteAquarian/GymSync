@@ -51,7 +51,8 @@ jobs:
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/gymsync:${{ github.event.inputs.branch || github.ref_name }} .
+        run: |
+          docker build --build-arg DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} --build-arg IMAGE_TAG=${{ github.event.inputs.branch || github.ref_name }} -t ${{ secrets.DOCKERHUB_USERNAME }}/gymsync:${{ github.event.inputs.branch || github.ref_name }} .
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/gymsync:${{ github.event.inputs.branch || github.ref_name }}
