@@ -5,7 +5,7 @@ EXPOSE 80
 
 # SDK image for building the app
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR .
+WORKDIR ./
 
 # Copy csproj and restore
 COPY ["GymSync.csproj", "./"]
@@ -13,7 +13,7 @@ RUN dotnet restore "GymSync.csproj"
 
 # Copy everything and publish
 COPY . .
-RUN dotnet publish "GymSync.csproj" -c Release -o /publish
+RUN dotnet publish "GymSync.csproj" -c Release -o /app/publish
 
 # Final stage
 FROM base AS final
