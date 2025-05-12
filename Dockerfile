@@ -12,12 +12,11 @@ COPY ["GymSync.csproj", "./"]
 RUN dotnet restore "GymSync.csproj"
 
 # Copy everything and publish
-COPY connection.txt connection.txt
 COPY . .
 RUN dotnet publish "GymSync.csproj" -c Release -o /app/publish
 
 # Final stage
 FROM base AS final
 WORKDIR /app
-COPY --from=build /publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "GymSync.dll"]

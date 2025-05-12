@@ -24,8 +24,7 @@ jobs:
         run: dotnet restore GymSync.csproj
         
       - name: Recreate connection string
-        run: |
-          echo "${{ secrets.CONNECTION_STRING_BASE64 }}" | base64 -d > connection.txt
+        run: echo "${{ secrets.CONNECTION_STRING_BASE64 }}" | base64 -d > connection.txt
 
       - name: Build app
         run: dotnet build GymSync.csproj --configuration Release --no-restore
@@ -41,6 +40,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        
+      - name: Recreate connection string
+        run: echo "${{ secrets.CONNECTION_STRING_BASE64 }}" | base64 -d > connection.txt
 
       - name: Build Docker image
         run: docker build -t gymsync:validate .
