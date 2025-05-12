@@ -31,6 +31,12 @@ jobs:
 
       - name: Publish app
         run: dotnet publish GymSync.csproj --configuration Release --no-build
+      
+      - name: Upload publish output
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-output
+          path: bin/Release/net9.0/publish
 
   docker:
     name: Docker Build Validation
@@ -41,8 +47,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         
-      - name: Recreate connection string
-        run: echo "${{ secrets.CONNECTION_STRING_BASE64 }}" | base64 -d > connection.txt
+      - name: Download publish output
+        uses: actions/download-artifact@v4
+        with:
+          name: publish-output
+          path: publish
 
       - name: Build Docker image
         run: docker build -t gymsync:validate .
