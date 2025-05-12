@@ -1,17 +1,23 @@
 ﻿@inject ApplicationDbContext _dbContext;
+@inject NavigationManager Navigation;
+@inject UserSessionService UserSession;
 
 @page "/client-appointment-list/{_client_id:int}";
 @using GymSync.Components;
 @using GymSync.Data;
 @using GymSync.Models;
 @using GymSync.Views;
+@using GymSync.Services;
 @using Microsoft.EntityFrameworkCore;
+@using MySqlConnector;
 
 
 <body>
 	<h3>Client Appointment List</h3>
 
 	<p>This page is for displaying all of a client's appointments</p>
+
+
 
 	@if (!_ready)
 	{
@@ -21,12 +27,16 @@
 	{
 		<p>Upcoming Appointments for: <b>@_currentUser.FirstName.ToUpper() @_currentUser.LastName.ToUpper()</b></p>
 
+		<button @onclick="()=>LinkToClientDashboard()">Dashboard</button>
+		<button @onclick="()=>LinkToEquipmentStatus()">Equipment Status</button>
+
 		<table class="schedule-table">
 			<thead>
 				<tr>
 					<th>Appt Id</th>
 					<th> Start Day/Time</th>
 					<th>End Day/Time</th>
+					<th>Cancel</th>
 				</tr>
 			</thead>
 
@@ -40,6 +50,7 @@
 						<td>@appt.appointment_id</td>
 						<td>@appt.start_time</td>
 						<td>@appt.end_time</td>
+						<button @onclick="()=>CancelAppointment(appt.appointment_id)">Cancel</button>
 					</tr>
 				}
 				else
@@ -48,13 +59,17 @@
 						<td>@appt.appointment_id</td>
 						<td>@appt.start_time</td>
 						<td>@appt.end_time</td>
+						<button @onclick="()=>CancelAppointment(appt.appointment_id)">Cancel</button>
 					</tr>					
 				}
+				
 
 			}
 		</table>
 
-		<p>Sign up for a new appointment <a a href=@($"/appointment_signup/{_client_id}")>here</a></p>
+		@*<p>Sign up for a new appointment <a a href=@($"/appointment_signup/{_client_id}")>here</a></p>*@
+		<button @onclick="()=>LinkToNewAppointment()">New Appointment</button>
+		<p>@pageMessage</p>
 	}
 
 </body>
@@ -69,6 +84,8 @@
 
 	private UserView _currentUser = new UserView(0, "first", "last", "email");
 	private List<AppointmentEntity> _appointmentList = [];
+
+	private string pageMessage = "No current updates";
 
 
 	protected override async Task OnInitializedAsync()
@@ -86,5 +103,38 @@
 		_appointmentList = (await _query.ClientToAppointmentAll(_client_id)).OrderBy(appt => appt.start_time).ToList();
 
 		_ready = true;
+	}
+
+	private void LinkToClientDashboard()
+	{
+		Navigation.NavigateTo($"/client/{UserSession.ClientID}");
+	}
+
+	private void LinkToNewAppointment()
+	{
+		Navigation.NavigateTo($"/appointment_signup/{_client_id}");
+	}
+
+	private void LinkToEquipmentStatus()
+	{
+		Navigation.NavigateTo($"/equipment-availability");
+	}
+
+	private async Task CancelAppointment(int appt_id)
+	{
+		try
+		{
+			var apptIdParam = new MySqlParameter("@apptId", appt_id);
+
+			await _dbContext.Database.ExecuteSqlRawAsync("CALL cancel_appointment(@apptId)", apptIdParam);
+			pageMessage = "Appointment successfully canceled";
+
+			_appointmentList = (await _query.ClientToAppointmentAll(_client_id)).OrderBy(appt => appt.start_time).ToList();
+
+		}
+		catch (Exception ex)
+		{
+			pageMessage = $"Unable to cancel appointment: {ex.Message}";
+		}
 	}
 }

@@ -1,5 +1,5 @@
 ﻿@inject ApplicationDbContext DbContext;
-@inject NavigationManager NavigationManager
+@inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserSessionService _userSession;
 
@@ -12,6 +12,7 @@
 @using GymSync.Views;
 @using Microsoft.EntityFrameworkCore;
 @using GymSync.Services;
+
 
 
 <link href="Style.css" rel="stylesheet" />
@@ -73,6 +74,7 @@ This page is for listing all of an individual trainer's upcoming appointments'
 	}
 	else
 	{
+		<button @onclick="()=>LinkToEquipmentStatus()">Equipment Status</button>
 		@if (@_currentUser != null)
 		{
 			<h2>Welcome, @_currentUser.FirstName @_currentUser.LastName <br /></h2>
@@ -214,5 +216,10 @@ This page is for listing all of an individual trainer's upcoming appointments'
 			using (_query.AcquireLock())
 				_appointmentList.AddRange(await _query.GetAppointmentsForClient(client.client_id));
 		}
+	}
+
+	private void LinkToEquipmentStatus()
+	{
+		Navigation.NavigateTo($"/equipment-availability");
 	}
 }

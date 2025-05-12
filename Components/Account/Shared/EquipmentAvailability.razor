@@ -1,5 +1,7 @@
-﻿@inject ApplicationDbContext DbContext;
+@inject ApplicationDbContext DbContext;
 @inject UserSessionService UserSession;
+@inject NavigationManager Navigation;
+
 
 @page "/equipment-availability"
 
@@ -48,7 +50,7 @@
 
 <PageTitle>GymSync Equipment Availability</PageTitle>
 <h1>Equipment Availability</h1>
-This page has a list of all gym equipment and its current availability.
+<p>This page has a list of all gym equipment and its current availability.</p>
 
 
 @if (!_ready)
@@ -57,6 +59,15 @@ This page has a list of all gym equipment and its current availability.
 }
 else
 {
+	@if (UserSession.IsClient)
+	{
+		<button @onclick="()=>LinkToClientDashboard()">Client Dashboard</button>
+	}
+	@if (UserSession.IsTrainer)
+	{
+		<button @onclick="()=>LinkToTrainerDashboard()">Trainer Dashboard</button>	
+	}
+
 	<table class="equipment-table">
 
 		<thead>
@@ -66,9 +77,10 @@ else
 				<th>Location</th>				
 				<th>In Use</th>
 				<th>Mark Status</th>
-				<th>Last Maintenance</th>
+
 				@if (UserSession.IsStaff)
 				{
+					<th>Last Maintenance</th>
 					<th>Mx Complete</th>
 				}
 
@@ -82,20 +94,10 @@ else
 					<td>@gymEquipment.EquipmentID</td>
 					<td>@gymEquipment.Name</td>
 					<td>@gymEquipment.Location</td>
-					<td>
-						<button @onclick="()=>UpdateEquipmentUseStatus(gymEquipment.EquipmentID)"></button>
-					</td>
+
 
 					@if (gymEquipment.InUse)
-					{
-						<td class="td-inuse">In Use</td>
-					}
-					else
-					{
-						<td class="td-notinuse">Open</td>
-					}
 
-					@if (gymEquipment.LastMaintenance < DateTime.Now.AddHours(-24))
 					{
 						<td class="td-inuse">@gymEquipment.LastMaintenance</td>
 					}
@@ -104,8 +106,21 @@ else
 						<td class="td-notinuse">@gymEquipment.LastMaintenance</td>
 					}
 
-					@if (UserSession.IsStaff)
+					<td>
+						<button @onclick="()=>UpdateEquipmentUseStatus(gymEquipment.EquipmentID)">Check In/Out</button>
+					</td>
+
+					@if(UserSession.IsStaff)
 					{
+						@if (gymEquipment.LastMaintenance < DateTime.Now.AddHours(-24))
+						{
+							<td class="td-inuse">@gymEquipment.LastMaintenance</td>
+						}
+						else
+						{
+							<td class="td-notinuse">@gymEquipment.LastMaintenance</td>
+						}
+
 						<td>
 							<button @onclick="()=>CompleteMaintenance(gymEquipment.EquipmentID)">Done</button>
 						</td>
@@ -187,6 +202,17 @@ else
 		{
 			inUseStatusMessage = $"Failed to update status: {ex.Message}";
 		}
+	}
+
+
+	private void LinkToClientDashboard()
+	{
+		Navigation.NavigateTo($"/client/{UserSession.ClientID}");
+	}
+
+	private void LinkToTrainerDashboard()
+	{
+		Navigation.NavigateTo($"/trainer-appointment-list/{UserSession.TrainerID}");
 	}
 
 }
