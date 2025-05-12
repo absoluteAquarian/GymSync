@@ -25,7 +25,7 @@ jobs:
         
       - name: Recreate connection string
         run: |
-          echo "${{ secrets.CONNECTION_STRING_BASE64 }}" | base64 -d > ./connection.txt
+          echo "${{ secrets.CONNECTION_STRING_BASE64 }}" | base64 -d > connection.txt
 
       - name: Build app
         run: dotnet build GymSync.csproj --configuration Release --no-restore
