@@ -1,10 +1,11 @@
-﻿# Base image for ASP.NET runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+﻿# Use the pre-built image from Docker Hub (existing image)
+FROM ${{ secrets.DOCKERHUB_USERNAME }}/gymsync:latest
+
+# Set the working directory
 WORKDIR /app
+
+# Expose port 80 for the app to be accessible
 EXPOSE 80
 
-# Copy published output from GitHub Actions
-COPY ./publish/ .
-
-# Set the startup command
+# Set the entry point for running the app
 ENTRYPOINT ["dotnet", "GymSync.dll"]
