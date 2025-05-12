@@ -1,6 +1,7 @@
 ﻿# Base image for ASP.NET runtime
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
+EXPOSE 80
 
 # Copy published output from GitHub Actions
 COPY ./publish/ .
