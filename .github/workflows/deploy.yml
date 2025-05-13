@@ -35,7 +35,7 @@ jobs:
       - name: Generate self-signed certificate
         run: |
           mkdir -p certs
-          dotnet dev-certs https -ep certs/aspnetapp.pfx -p "${{ secrets.CERT_PASSWORD }}"
+          dotnet dev-certs https -ep certs/aspnetapp.pfx -p ${{ secrets.CERT_PASSWORD }}
 
       - name: Build app
         run: dotnet build GymSync.csproj --configuration Release --no-restore
