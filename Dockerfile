@@ -1,8 +1,10 @@
 ﻿# Use the official .NET 9 runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
-EXPOSE 7172
-ENV DOTNET_URLS=http://+:7172
+
+# Render expects apps to listen on port 10000
+EXPOSE 10000
+ENV ASPNETCORE_URLS=http://+:10000
 
 # Copy published output from GitHub Actions
 COPY publish/ ./
