@@ -33,7 +33,8 @@ namespace GymSync {
 
 			builder.WebHost.UseUrls("http://0.0.0.0:7172");
 
-			// Explicitly configure Kestrel
+			// Optional: Explicitly configure Kestrel
+			/*
 			builder.WebHost.ConfigureKestrel(serverOptions =>
 			{
 				serverOptions.ConfigureHttpsDefaults(httpsOptions =>
@@ -43,6 +44,7 @@ namespace GymSync {
 					httpsOptions.ServerCertificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(certPath, certPassword);
 				});
 			});
+			*/
 
 			builder.Services.AddCascadingAuthenticationState();
 			builder.Services.AddScoped<IdentityUserAccessor>();
