@@ -2,6 +2,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 EXPOSE 7172
+ENV DOTNET_URLS=http://+:7172
 
 # Copy published output from GitHub Actions
 COPY publish/ ./
