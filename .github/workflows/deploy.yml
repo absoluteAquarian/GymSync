@@ -42,7 +42,7 @@ jobs:
         run: ls -la publish
         
       - name: Upload publish folder to Actions
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: publish-folder
           path: publish/
@@ -65,7 +65,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           
       - name: Download publish folder from Actions
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: publish-folder
           path: publish
