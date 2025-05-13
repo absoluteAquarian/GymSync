@@ -5,6 +5,7 @@ WORKDIR /app
 # Render expects apps to listen on port 10000
 EXPOSE 10000
 ENV ASPNETCORE_URLS=http://+:10000
+ENV DOTNET_URLS=http://+:10000
 
 # Copy published output from GitHub Actions
 COPY publish/ ./
