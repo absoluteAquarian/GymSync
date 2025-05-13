@@ -40,6 +40,12 @@ jobs:
         
       - name: List publish output
         run: ls -la publish
+        
+      - name: Upload publish folder to Actions
+        uses: actions/upload-artifact@v3
+        with:
+          name: publish-folder
+          path: publish/
 
   docker:
     name: Docker Build Validation
@@ -57,6 +63,12 @@ jobs:
         with:
           username: absoluteaquarian
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
+      - name: Download publish folder from Actions
+        uses: actions/download-artifact@v3
+        with:
+          name: publish-folder
+          path: publish
 
       - name: Build Docker image
         run: |
