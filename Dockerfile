@@ -1,14 +1,9 @@
-﻿# Define build argument for image name
-ARG IMAGE_TAG
-
-# Use the pre-built image from Docker Hub (existing image)
-FROM absoluteaquarian/gymsync:${IMAGE_TAG}
-
-# Set the working directory
+﻿# Use the official .NET 9 runtime image as the base for the final image
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# Expose port 80 for the app to be accessible
-EXPOSE 80
+# Copy the pre-built files from the host system (published output)
+COPY ./publish/ .
 
-# Set the entry point for running the app
+# Set the entry point to start the application
 ENTRYPOINT ["dotnet", "GymSync.dll"]
