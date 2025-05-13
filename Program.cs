@@ -23,6 +23,8 @@ namespace GymSync {
 				options.HttpsPort = 7172;
 			});
 
+			builder.WebHost.UseUrls("http://+:7172");
+
 
 			builder.Services.AddCascadingAuthenticationState();
 			builder.Services.AddScoped<IdentityUserAccessor>();
