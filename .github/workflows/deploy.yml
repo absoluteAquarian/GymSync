@@ -31,6 +31,11 @@ jobs:
         
       - name: Recreate connection string
         run: echo "${{ secrets.CONNECTION_STRING_BASE64 }}" | base64 -d > connection.txt
+      
+      - name: Generate self-signed certificate
+        run: |
+          mkdir -p certs
+          dotnet dev-certs https -ep certs/aspnetapp.pfx -p "${{ secrets.CERT_PASSWORD }}"
 
       - name: Build app
         run: dotnet build GymSync.csproj --configuration Release --no-restore
@@ -46,6 +51,12 @@ jobs:
         with:
           name: publish-folder
           path: publish/
+        
+      - name: Upload certificate to Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: certs-folder
+          path: certs/
 
   docker:
     name: Docker Build Validation
@@ -68,11 +79,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: publish-folder
-          path: publish
+          path: publish/
+          
+      - name: Download certificate from Actions
+        uses: actions/download-artifact@v4
+        with:
+          name: certs-folder
+          path: certs/
 
       - name: Build Docker image
         run: |
-          docker build -t absoluteaquarian/gymsync:${{ env.IMAGE_TAG }} .
+          docker build \
+            --build-arg CERT_PASSWORD="${{ secrets.CERT_PASSWORD }}" \
+            -t absoluteaquarian/gymsync:${{ env.IMAGE_TAG }} .
 
       - name: Push Docker image
         run: docker push absoluteaquarian/gymsync:${{ env.IMAGE_TAG }}
