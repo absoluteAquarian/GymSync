@@ -52,7 +52,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t absoluteaquarian/gymsync:${{ github.event.inputs.branch || github.ref_name }} .
+          docker build -t absoluteaquarian/gymsync:${{ github.event.inputs.branch || github.ref_name }} ./publish
 
       - name: Push Docker image
         run: docker push absoluteaquarian/gymsync:${{ github.event.inputs.branch || github.ref_name }}
