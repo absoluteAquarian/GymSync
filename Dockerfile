@@ -5,5 +5,8 @@ WORKDIR /app
 # Copy the pre-built files from the host system (published output)
 COPY . .
 
+# Check the contents of the /app directory to ensure GymSync.dll exists
+RUN ls -al /app
+
 # Set the entry point to start the application
 ENTRYPOINT ["dotnet", "GymSync.dll"]
