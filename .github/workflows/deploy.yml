@@ -43,7 +43,7 @@ jobs:
       - name: Validate certificate
         run: |
           export CERT_PASSWORD="${{ secrets.CERT_PASSWORD }}"
-          dotnet dev-certs https --check --ep certs/aspnetapp.pfx --p "$CERT_PASSWORD"
+          dotnet dev-certs https -c -ep certs/aspnetapp.pfx -p "$CERT_PASSWORD"
 
       - name: Build app
         run: dotnet build GymSync.csproj --configuration Release --no-restore
