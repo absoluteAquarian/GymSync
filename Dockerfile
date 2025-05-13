@@ -2,8 +2,12 @@
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
+RUN ls-al .
+
+RUN ls-al /publish
+
 # Copy the pre-built files from the host system (published output)
-COPY ./publish/ .
+COPY ./publish .
 
 # Check the contents of the /app directory to ensure GymSync.dll exists
 RUN ls -al /app
