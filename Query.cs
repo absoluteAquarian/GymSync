@@ -18,6 +18,8 @@ namespace GymSync {
 
 		#region User Look-up
 		public async Task<UserEntity?> UserToUser(int userID) {
+			Console.WriteLine("[Query::UserToUser] Looking up user with ID: " + userID);
+
 			return await _context.USER
 				.Where(uid => uid.user_id == userID)
 				.FirstOrDefaultAsync();
@@ -26,6 +28,8 @@ namespace GymSync {
 
 		#region Cross-Reference Queries
 		public async Task<ClientEntity?> AppointmentToClient(int appointmentID) {
+			Console.WriteLine("[Query::AppointmentToClient] Looking up client for appointment with ID: " + appointmentID);
+
 			return await _context.APPOINTMENT
 				.Where(a => a.appointment_id == appointmentID)
 				.ToCrossReferencePrimary(_context.APPOINTMENT_x_CLIENT)
@@ -34,6 +38,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<ClientEntity>> AppointmentToClientMany(IEnumerable<int> appointmentIDs) {
+			Console.WriteLine("[Query::AppointmentToClientMany] Looking up clients for appointments with IDs: " + string.Join(", ", appointmentIDs));
+
 			return await _context.APPOINTMENT
 				.WhereKeysMatch(appointmentIDs)
 				.ToCrossReferencePrimary(_context.APPOINTMENT_x_CLIENT)
@@ -42,12 +48,16 @@ namespace GymSync {
 		}
 
 		public async Task<ClientEntity?> ClientIdToClient(int clientId) {
+			Console.WriteLine("[Query::ClientIdToClient] Looking up client with ID: " + clientId);
+
 			return await _context.CLIENT
 				.FindAsync(clientId);
 				
 		}
 
 		public async Task<List<ClientEntity>> AppointmentToClientAll() {
+			Console.WriteLine("[Query::AppointmentToClientAll] Looking up all clients for all appointments");
+
 			return await _context.APPOINTMENT
 				.ToCrossReferencePrimary(_context.APPOINTMENT_x_CLIENT)
 				.FromCrossReferenceForeign(_context.CLIENT)
@@ -55,6 +65,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<AppointmentEntity>> ClientToAppointmentAll(int client_id) {
+			Console.WriteLine("[Query::ClientToAppointmentAll] Looking up all appointments for client with ID: " + client_id);
+
 			return await _context.CLIENT
 				.Where(c => c.client_id == client_id)
 				.ToCrossReferenceForeign(_context.APPOINTMENT_x_CLIENT)
@@ -63,6 +75,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<AppointmentEntity>> TrainerToAppointmentAll(int trainer_id) {
+			Console.WriteLine("[Query::TrainerToAppointmentAll] Looking up all appointments for trainer with ID: " + trainer_id);
+
 			return await _context.TRAINER
 				.Where(t => t.trainer_id == trainer_id)
 				.ToCrossReferenceForeign(_context.APPOINTMENT_x_TRAINER)
@@ -71,6 +85,8 @@ namespace GymSync {
 		}
 
 		public async Task<TrainerEntity?> AppointmentToTrainer(int appointmentID) {
+			Console.WriteLine("[Query::AppointmentToTrainer] Looking up trainer for appointment with ID: " + appointmentID);
+
 			return await _context.APPOINTMENT
 				.Where(a => a.appointment_id == appointmentID)
 				.ToCrossReferencePrimary(_context.APPOINTMENT_x_TRAINER)
@@ -79,6 +95,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<TrainerEntity>> AppointmentToTrainerMany(IEnumerable<int> appointmentIDs) {
+			Console.WriteLine("[Query::AppointmentToTrainerMany] Looking up trainers for appointments with IDs: " + string.Join(", ", appointmentIDs));
+
 			return await _context.APPOINTMENT
 				.WhereKeysMatch(appointmentIDs)
 				.ToCrossReferencePrimary(_context.APPOINTMENT_x_TRAINER)
@@ -87,6 +105,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<TrainerEntity>> AppointmentToTrainerAll() {
+			Console.WriteLine("[Query::AppointmentToTrainerAll] Looking up all trainers for all appointments");
+
 			return await _context.APPOINTMENT
 				.ToCrossReferencePrimary(_context.APPOINTMENT_x_TRAINER)
 				.FromCrossReferenceForeign(_context.TRAINER)
@@ -94,6 +114,8 @@ namespace GymSync {
 		}
 
 		public async Task<UserView?> ClientToUser(int clientID) {
+			Console.WriteLine("[Query::ClientToUser] Looking up user for client with ID: " + clientID);
+
 			return await _context.CLIENT
 				.Where(c => c.client_id == clientID)
 				.ToCrossReferenceForeign(_context.USER_x_CLIENT)
@@ -103,6 +125,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<UserView>> ClientToUserMany(IEnumerable<int> clientIDs) {
+			Console.WriteLine("[Query::ClientToUserMany] Looking up users for clients with IDs: " + string.Join(", ", clientIDs));
+
 			return await _context.CLIENT
 				.WhereKeysMatch(clientIDs)
 				.ToCrossReferenceForeign(_context.USER_x_CLIENT)
@@ -112,6 +136,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<UserView>> ClientToUserAll() {
+			Console.WriteLine("[Query::ClientToUserAll] Looking up all users for all clients");
+
 			return await _context.CLIENT
 				.ToCrossReferenceForeign(_context.USER_x_CLIENT)
 				.FromCrossReferencePrimary(_context.USER)
@@ -120,6 +146,8 @@ namespace GymSync {
 		}
 
 		public async Task<ItemEntity?> EquipmentToItem(int equipmentID) {
+			Console.WriteLine("[Query::EquipmentToItem] Looking up item for equipment with ID: " + equipmentID);
+
 			return await _context.EQUIPMENT
 				.Where(e => e.equipment_id == equipmentID)
 				.ToCrossReferencePrimary(_context.EQUIPMENT_x_ITEM)
@@ -128,6 +156,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<ItemEntity>> EquipmentToItemMany(IEnumerable<int> equipmentIDs) {
+			Console.WriteLine("[Query::EquipmentToItemMany] Looking up items for equipment with IDs: " + string.Join(", ", equipmentIDs));
+
 			return await _context.EQUIPMENT
 				.WhereKeysMatch(equipmentIDs)
 				.ToCrossReferencePrimary(_context.EQUIPMENT_x_ITEM)
@@ -136,6 +166,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<ItemEntity>> EquipmentToItemAll() {
+			Console.WriteLine("[Query::EquipmentToItemAll] Looking up all items for all equipment");
+
 			return await _context.EQUIPMENT
 				.ToCrossReferencePrimary(_context.EQUIPMENT_x_ITEM)
 				.FromCrossReferenceForeign(_context.ITEM)
@@ -143,12 +175,16 @@ namespace GymSync {
 		}
 
 		public async Task<List<EquipmentEntity>> EquipmentToEquipmentAll() {
+			Console.WriteLine("[Query::EquipmentToEquipmentAll] Looking up all equipment for all items");
+
 			return await _context.EQUIPMENT
 				.WhereKeysMatch(_context.EQUIPMENT_x_ITEM)
 				.ToListAsync();
 		}
 
 		public async Task<JobEntity?> StaffToJob(int staffID) {
+			Console.WriteLine("[Query::StaffToJob] Looking up job for staff with ID: " + staffID);
+
 			return await _context.STAFF
 				.Where(s => s.staff_id == staffID)
 				.ToCrossReferencePrimary(_context.STAFF_x_JOB)
@@ -157,6 +193,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<JobEntity>> StaffToJobMany(IEnumerable<int> staffIDs) {
+			Console.WriteLine("[Query::StaffToJobMany] Looking up jobs for staff with IDs: " + string.Join(", ", staffIDs));
+
 			return await _context.STAFF
 				.WhereKeysMatch(staffIDs)
 				.ToCrossReferencePrimary(_context.STAFF_x_JOB)
@@ -165,6 +203,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<JobEntity>> StaffToJobAll() {
+			Console.WriteLine("[Query::StaffToJobAll] Looking up all jobs for all staff");
+
 			return await _context.STAFF
 				.ToCrossReferencePrimary(_context.STAFF_x_JOB)
 				.FromCrossReferenceForeign(_context.JOB)
@@ -172,6 +212,8 @@ namespace GymSync {
 		}
 
 		public async Task<UserView?> StaffToUser(int staffID) {
+			Console.WriteLine("[Query::StaffToUser] Looking up user for staff with ID: " + staffID);
+
 			return await _context.STAFF
 				.Where(s => s.staff_id == staffID)
 				.ToCrossReferenceForeign(_context.USER_x_STAFF)
@@ -181,6 +223,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<UserView>> StaffToUserMany(IEnumerable<int> staffIDs) {
+			Console.WriteLine("[Query::StaffToUserMany] Looking up users for staff with IDs: " + string.Join(", ", staffIDs));
+
 			return await _context.STAFF
 				.WhereKeysMatch(staffIDs)
 				.ToCrossReferenceForeign(_context.USER_x_STAFF)
@@ -190,6 +234,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<UserView>> StaffToUserAll() {
+			Console.WriteLine("[Query::StaffToUserAll] Looking up all users for all staff");
+
 			return await _context.STAFF
 				.ToCrossReferenceForeign(_context.USER_x_STAFF)
 				.FromCrossReferencePrimary(_context.USER)
@@ -198,6 +244,8 @@ namespace GymSync {
 		}
 
 		public async Task<UserView?> TrainerToUser(int trainerID) {
+			Console.WriteLine("[Query::TrainerToUser] Looking up user for trainer with ID: " + trainerID);
+
 			return await _context.TRAINER
 				.Where(t => t.trainer_id == trainerID)
 				.ToCrossReferenceForeign(_context.USER_x_TRAINER)
@@ -207,6 +255,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<UserView>> TrainerToUserMany(IEnumerable<int> trainerIDs) {
+			Console.WriteLine("[Query::TrainerToUserMany] Looking up users for trainers with IDs: " + string.Join(", ", trainerIDs));
+
 			return await _context.TRAINER
 				.WhereKeysMatch(trainerIDs)
 				.ToCrossReferenceForeign(_context.USER_x_TRAINER)
@@ -216,6 +266,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<UserView>> TrainerToUserAll() {
+			Console.WriteLine("[Query::TrainerToUserAll] Looking up all users for all trainers");
+
 			return await _context.TRAINER
 				.ToCrossReferenceForeign(_context.USER_x_TRAINER)
 				.FromCrossReferencePrimary(_context.USER)
@@ -224,6 +276,8 @@ namespace GymSync {
 		}
 
 		public async Task<ClientEntity?> UserToClient(int userID) {
+			Console.WriteLine("[Query::UserToClient] Looking up client for user with ID: " + userID);
+
 			return await _context.USER
 				.Where(u => u.user_id == userID)
 				.ToCrossReferencePrimary(_context.USER_x_CLIENT)
@@ -232,6 +286,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<ClientEntity>> UserToClientMany(IEnumerable<int> userIDs) {
+			Console.WriteLine("[Query::UserToClientMany] Looking up clients for users with IDs: " + string.Join(", ", userIDs));
+
 			return await _context.USER
 				.WhereKeysMatch(userIDs)
 				.ToCrossReferencePrimary(_context.USER_x_CLIENT)
@@ -240,6 +296,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<ClientEntity>> UserToClientAll() {
+			Console.WriteLine("[Query::UserToClientAll] Looking up all clients for all users");
+
 			return await _context.USER
 				.ToCrossReferencePrimary(_context.USER_x_CLIENT)
 				.FromCrossReferenceForeign(_context.CLIENT)
@@ -247,6 +305,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<ClientEntity>> TrainerClientList(int trainer_id) {
+			Console.WriteLine("[Query::TrainerClientList] Looking up clients for trainer with ID: " + trainer_id);
+
 			return await _context.CLIENT
 				.Where(c => c.current_trainer_id == trainer_id)
 				.ToListAsync();
@@ -254,6 +314,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<UserView>> GetClientsForTrainer(int trainerID) {
+			Console.WriteLine("[Query::GetClientsForTrainer] Looking up clients for trainer with ID: " + trainerID);
+
 			return await _context.APPOINTMENT_x_TRAINER
 				.Where(at => at.trainer_id == trainerID)
 				.TransformWhereKeysMatch(_context.APPOINTMENT_x_CLIENT)
@@ -265,6 +327,8 @@ namespace GymSync {
 		}
 
 		public async Task<StaffEntity?> UserToStaff(int userID) {
+			Console.WriteLine("[Query::UserToStaff] Looking up staff for user with ID: " + userID);
+
 			return await _context.USER
 				.Where(u => u.user_id == userID)
 				.ToCrossReferencePrimary(_context.USER_x_STAFF)
@@ -273,6 +337,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<StaffEntity>> UserToStaffMany(IEnumerable<int> userIDs) {
+			Console.WriteLine("[Query::UserToStaffMany] Looking up staff for users with IDs: " + string.Join(", ", userIDs));
+
 			return await _context.USER
 				.WhereKeysMatch(userIDs)
 				.ToCrossReferencePrimary(_context.USER_x_STAFF)
@@ -281,6 +347,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<StaffEntity>> UserToStaffAll() {
+			Console.WriteLine("[Query::UserToStaffAll] Looking up all staff for all users");
+
 			return await _context.USER
 				.ToCrossReferencePrimary(_context.USER_x_STAFF)
 				.FromCrossReferenceForeign(_context.STAFF)
@@ -288,6 +356,8 @@ namespace GymSync {
 		}
 
 		public async Task<TrainerEntity?> UserToTrainer(int userID) {
+			Console.WriteLine("[Query::UserToTrainer] Looking up trainer for user with ID: " + userID);
+
 			return await _context.USER
 				.Where(u => u.user_id == userID)
 				.ToCrossReferencePrimary(_context.USER_x_TRAINER)
@@ -296,6 +366,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<TrainerEntity>> UserToTrainerMany(IEnumerable<int> userIDs) {
+			Console.WriteLine("[Query::UserToTrainerMany] Looking up trainers for users with IDs: " + string.Join(", ", userIDs));
+
 			return await _context.USER
 				.WhereKeysMatch(userIDs)
 				.ToCrossReferencePrimary(_context.USER_x_TRAINER)
@@ -304,6 +376,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<TrainerEntity>> UserToTrainerAll() {
+			Console.WriteLine("[Query::UserToTrainerAll] Looking up all trainers for all users");
+
 			return await _context.USER
 				.ToCrossReferencePrimary(_context.USER_x_TRAINER)
 				.FromCrossReferenceForeign(_context.TRAINER)
@@ -311,17 +385,23 @@ namespace GymSync {
 		}
 
 		public async Task<List<UserEntity>> GetAllUsers() {
+			Console.WriteLine("[Query::GetAllUsers] Looking up all users");
+
 			return await _context.USER
 				.ToListAsync();
 		}
 
 		public async Task<List<User_x_TrainerEntity>> GetAllUsersXTrainer() {
+			Console.WriteLine("[Query::GetAllUsersXTrainer] Looking up all user/trainer cross references");
+
 			return await _context.USER_x_TRAINER
 				.ToListAsync();
 		}
 
 		//ASP user lookup
 		public async Task<UserView?> AspNetUserToUser(string Email) {
+			Console.WriteLine("[Query::AspNetUserToUser] Looking up user for email: " + Email);
+
 			return await _context.USER
 				.Where(s => s.email == Email)
 				.AsUserView()
@@ -331,6 +411,8 @@ namespace GymSync {
 
 		#region Specialized Queries
 		public async Task<List<StaticGroup<UserView, UserView>>> GetClientsForTrainerAll() {
+			Console.WriteLine("[Query::GetClientsForTrainerAll] Looking up all clients for all trainers");
+
 			// TODO: Return empty client lists for trainers with no clients?
 			return await _context.TRAINER
 				.ToCrossReferenceForeign(_context.APPOINTMENT_x_TRAINER)
@@ -352,6 +434,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<EquipmentView>> GetEquipmentAll() {
+			Console.WriteLine("[Query::GetEquipmentAll] Looking up all equipment");
+
 			return await _context.EQUIPMENT
 				// Resolve the equipment for each reference
 				.MergeWithCrossReferencePrimary(_context.EQUIPMENT_x_ITEM, (e, ei) => new { ei.item_id, e.equipment_id, e.location_name, e.last_maintenance, e.in_use })
@@ -362,6 +446,7 @@ namespace GymSync {
 
 		public async Task<List<StaffJobView>> GetUserAndJobForStaffAll() {
 			// This method allows missing columns when joining the info from the JOB table since a staff member may not have a job
+			Console.WriteLine("[Query::GetUserAndJobForStaffAll] Looking up all staff and their jobs");
 
 			return await _context.STAFF
 				// Resolve the job for each staff member.  If the job doesn't exist, the job info will be null
@@ -379,6 +464,7 @@ namespace GymSync {
 
 		public async Task<UserRolesView?> GetUserRolesForUser(int userID) {
 			// This method allows missing columns when joining the various cross reference tables, since a user may not have a given role
+			Console.WriteLine("[Query::GetUserRolesForUser] Looking up user roles for user with ID: " + userID);
 
 			return await _context.USER
 				.Where(u => u.user_id == userID)
@@ -399,6 +485,8 @@ namespace GymSync {
 		}
 
 		public async Task<List<AppointmentView>> GetAppointmentsForClient(int clientID) {
+			Console.WriteLine("[Query::GetAppointmentsForClient] Looking up appointments for client with ID: " + clientID);
+
 			return await _context.CLIENT
 				.Where(c => c.client_id == clientID)
 				// Resolve the user for the client
@@ -411,6 +499,8 @@ namespace GymSync {
 		}
 
 		public async Task<UserView?> GetAssignedTrainerForClient(int clientID) {
+			Console.WriteLine("[Query::GetAssignedTrainerForClient] Looking up assigned trainer for client with ID: " + clientID);
+
 			return await _context.CLIENT
 				.Where(c => c.client_id == clientID)
 				// Resolve the trainer for the client

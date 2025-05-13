@@ -11,7 +11,15 @@ using Microsoft.EntityFrameworkCore.SqlServer;
 namespace GymSync {
 	public class Program {
 		public static void Main(string[] args) {
+			Console.WriteLine("[Program::Main] Starting GymSync...");
+
 			var builder = WebApplication.CreateBuilder(args);
+
+			builder.Logging.ClearProviders();
+			builder.Logging.AddSimpleConsole(options =>
+			{
+				options.IncludeScopes = true;
+			});
 
 			// Add services to the container.
 			builder.Services.AddRazorComponents()
@@ -38,6 +46,8 @@ namespace GymSync {
 			})
 			.AddIdentityCookies();
 
+			Console.WriteLine("[Program::Main] Reading secret connection string...");
+
 			var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
 
 			var manifestStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GymSync.connection.txt")
@@ -60,6 +70,7 @@ namespace GymSync {
 
 			builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+			Console.WriteLine("[Program::Main] Initializing application...");
 
 			var app = builder.Build();
 
@@ -87,7 +98,15 @@ namespace GymSync {
 
 			app.MapAdditionalIdentityEndpoints();
 
-			app.Run();
+			Console.WriteLine("[Program::Main] Running application...");
+
+			try {
+				app.Run();
+			} catch (Exception ex) {
+				Console.WriteLine($"[Program::Main] Exception caught\n{ex}");
+			} finally {
+				Console.WriteLine("[Program::Main] Application stopped.");
+			}
 		}
 	}
 }
