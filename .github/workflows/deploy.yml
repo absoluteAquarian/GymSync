@@ -16,6 +16,8 @@ jobs:
   build:
     name: Build ASP.NET App
     runs-on: ubuntu-latest
+    env:
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: false
 
     steps:
       - name: Checkout repository
