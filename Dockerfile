@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
 # Copy the pre-built files from the host system (published output)
-COPY ./publish/ .
+COPY . .
 
 # Set the entry point to start the application
 ENTRYPOINT ["dotnet", "GymSync.dll"]
